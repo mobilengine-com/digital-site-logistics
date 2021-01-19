@@ -1,0 +1,380 @@
+openapi: 3.0.0
+info:
+  title: Delivery Note API
+  version: '0.1'
+  description: |-
+    ## Introduction
+    The Delivery Note API is a REST API for creating delivery notes, getting a printable QR code for a delivery note and checking the status of the created delivery note.
+
+    ## Security
+    Access to the API is only allowed when the request contains an API key.
+    The API key must be sent in the HTTP Authorization header, with the Bearer authentication scheme:
+
+    ```
+    Authorization: Bearer MyApiKey123
+    ```
+
+    Requests without an API key or with an invalid API key will result in a HTTP 401 error code.
+
+    There are no fine-grained access rights, every API key allows clients to execute read and write operations through the API.
+
+    The API is only accessible through HTTPS.
+
+    ## Getting an API key
+    Administering API keys is done via the BauApp web interface.
+
+    The sandbox server accepts any API key that matches the regex `[0-9a-f]{32}`.
+
+    ## Message format
+    The API consumes and produces JSON messages, with the exception of the QR code endpoint, which returns an image.
+
+    The encoding of the JSON messages must be UTF-8.
+
+    Date fields are formatted like `2020-12-31` according to OpenAPI specs.
+    Datetime values are formatted like `2020-12-31T23:59:59Z` for UTC datetimes, and `2020-12-31T23:59:59+02:00` for datetimes with an offset.
+
+    See [http://spec.openapis.org/oas/v3.0.3#data-types](http://spec.openapis.org/oas/v3.0.3#data-types) for the specification details.
+
+    ## Main use case
+    The main use case for the API is to
+    1. Create a delivery note, by sending a POST message to the `/delivery_notes` path.
+    2. Get the QR code for the delivery note. For this, get the QR code PNG from `/delivery_notes/{id}/qr_code`.
+    3. Use the QR code somewhere on your physical delivery note document.
+    4. Poll the delivery note path for status changes. The status field of the delivery note is updated shortly after the QR code is scanned by the recipient of the delivery. Currently there isn't any other way to be notified of status changes to the delivery note (no webhooks or updates through websockets).
+
+    ## Updating delivery notes
+    The API doesn't allow updating delivery notes after creation.
+
+    You should just create a new note if a created note contains an error.
+
+    ## Data retention
+    For now, the production server keeps delivery notes indefinitely.
+
+    The data on the sandbox server is removed periodically.
+
+    ## Rate limiting
+    Rate limiting is based on the provided API key.
+    If too many requests are sent in a period of time the server responds with HTTP 429 messages.
+
+    Explicit rate limit values are to be determined later.
+
+    Rate limits on the sandbox server may be stricter than on the production server.
+  contact:
+    name: BauApp
+    url: 'https://www.bauapp.com/'
+    email: hello@bauapp.com
+servers:
+  - url: 'https://sandbox.to_be_determined.example.net/v1'
+    description: 'Sandbox environment, for testing API clients.'
+  - url: 'https://to_be_determined.example.net/v1'
+    description: Production environment
+paths:
+  /delivery_notes:
+    post:
+      summary: Create a new delivery note
+      operationId: createDeliveryNote
+      responses:
+        '201':
+          description: The delivery note was created.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |-
+                A link to the newly created delivery note.
+                The link is `/delivery_notes/{id}` where `{id}` is the `id` field supplied in the request JSON.
+        '400':
+          description: Bad Request. The response body contains a human-readable description of the error.
+        '409':
+          description: 'Conflict, a delivery note with this id already exists.'
+        '413':
+          description: |-
+            The request is too large. Request body size for creating delivery notes is limited to 64kB.
+      description: |-
+        All the products in the delivery note must be created before creating a delivery note.
+        The delivery note with the specified id must not exist yet.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewDeliveryNote'
+        description: The delivery note to create.
+        required: true
+  '/delivery_notes/{deliveryNoteId}':
+    parameters:
+      - $ref: '#/components/parameters/deliveryNoteId'
+    get:
+      summary: Get an existing delivery note
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedDeliveryNote'
+        '404':
+          description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
+      operationId: getDeliveryNote
+      description: |-
+        The delivery note with the id must exist, otherwise a HTTP 404 status is returned.
+
+        The delivery note contains a few extra fields along with the ones supplied during its creation.
+        These are the following:
+          - uuid
+          - status
+          - uri
+
+        See the `CreatedDelvieryNote` model definition for details.
+  '/delivery_notes/{deliveryNoteId}/qr_code':
+    parameters:
+      - $ref: '#/components/parameters/deliveryNoteId'
+    get:
+      summary: Get the QR code for the delivery note
+      responses:
+        '200':
+          description: |-
+            The QR code in PNG format.
+
+            The size of the image is undefined, but has a sufficiently large resolution for printing.
+
+            The QR code contains the same URI that is in the `uri` field of the delivery note.
+          content:
+            image/png:
+              schema:
+                type: object
+                properties: {}
+              examples: {}
+        '404':
+          description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
+      operationId: getDeliveryNoteQRCode
+components:
+  schemas:
+    NewDeliveryNote:
+      title: NewDeliveryNote
+      type: object
+      description: Data for creating a delivery note.
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: |-
+            The unique identifier for the delivery note, as 
+            The format of the note is not fixed, any identifier format can be used.
+            The identifier doesn't need to be globally unique, it's enough that it's unique for the current user (the one identified by the API key).
+          example: K20223223SL
+        issueDate:
+          format: date-time
+          type: string
+          example: '2021-01-19T15:39:22Z'
+          description: |-
+            The date and time when the delivery note was issued.
+            The value of this field is not verified, it can be in the far past or in the future.
+        supplierName:
+          type: string
+          example: BauApp Kft.
+          description: Name of the company who issued the delivery note.
+        supplierWarehouse:
+          type: string
+          example: Fő telephely
+          description: |-
+            The premise where the delivery note was issued.
+            If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
+        supplierAddress:
+          oneOf:
+            - $ref: '#/components/schemas/Address'
+          description: Address of the company who issued the delivery note.
+        supplierTaxNumber:
+          type: string
+          example: 52725916-2-05
+          description: Tax number of the company who issued the delivery note.
+        customerName:
+          type: string
+          description: Name of the company who is the customer of the delivery note.
+          example: HufBau Akker
+        customerAddress:
+          oneOf:
+            - $ref: '#/components/schemas/Address'
+          description: Address of the company who is the customer of the delivery note.
+        customerBauAppCompanyId:
+          type: string
+          description: |-
+            The customer’s BA Company ID which the issuer might provide so that the customer can receive 
+            the issued delivery note file digitally via the BauApp system.
+          example: BA134532
+        deliveryAddress:
+          oneOf:
+            - $ref: '#/components/schemas/Address'
+          description: The address where the delivery will be received.
+        products:
+          type: array
+          minItems: 1
+          description: The products and their quantity which are listed on the delivery note.
+          items:
+            $ref: '#/components/schemas/Product'
+        # uniqueCustomerCode:
+        #   type: string
+        #   example: '1089000'
+        #   description: The manufacturers’ unique identifier  code for their customers.
+        # purchaseOrderNumber:
+        #   type: string
+        #   example: PO6375327
+        #   description: Additional identifier from the manufacturer’s ERP system.
+        # assignmentNumber:
+        #   type: string
+        #   example: R4-20-00179
+        #   description: Additional identifier from the manufacturer’s ERP system.
+        # referenceNumber:
+        #   type: string
+        #   example: 182230/DTS
+        #   description: Additional identifier from the manufacturer’s ERP system.
+        # purchaseDate:
+        #   type: string
+        #   format: date
+        #   example: '2021-01-14'
+        #   description: Additional date from the manufacturer’s ERP system.
+        # fulfillmentDate:
+        #   type: string
+        #   format: date
+        #   example: '2021-01-20'
+        #   description: Additional date from the manufacturer’s ERP system.
+        ekaerNumber:
+          type: string
+          example: E2033061203BFE0
+          description: Identification number of the delivery from the Hungarian tax bureau (NAV).
+        haulierName:
+          type: string
+          example: Kelet-Transz Kft.
+          description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
+        haulierBauAppCompanyId:
+          type: string
+          example: BA735372
+          description: |-
+            The haulier’s BA Company ID which the issuer might provide so that the 
+            haulier can receive the received delivery note file digitally via the BauApp system.
+        totalNetWeight:
+          type: string
+          description: 'Net weight, including weight units.'
+          example: 970 kg
+        totalGrossWeight:
+          type: string
+          description: 'Gross weight, including weight units.'
+          example: 1t
+        other:
+          type: object
+          additionalProperties:
+            type: string
+          description: |-
+            Additional data to be stored along with this delivery note.
+            This field is meant to allow storage of miscellaneous fields your ERP system might need.
+            Values in this field are ignored by the BauApp system.
+      required:
+        - id
+        - issueDate
+        - supplierName
+        - supplierWarehouse
+        - supplierAddress
+        - customerName
+        - customerAddress
+        - deliveryAddress
+        - products
+    DeliveryNoteStatus:
+      type: string
+      title: DeliveryNoteStatus
+      description: |-
+        The current delivery status of the delivery note.
+
+        All delivery notes start with a `created` status, and change to the `delivered` status shortly after the delivery note QR code is scanned by the recipient.
+      enum:
+        - created
+        - delivered
+    Address:
+      title: Address
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: The name recipient or the sender.
+          example: Kovács Béla
+        country:
+          type: string
+          example: Hungary
+        city:
+          type: string
+          example: Budapest
+        zipCode:
+          type: string
+          example: '1111'
+        streetAddress:
+          type: string
+          example: 'Bartók Béla út 42, II/4'
+        phoneNumber:
+          type: string
+          example: '+3615552401'
+        comment:
+          type: string
+          example: 'Doorbell is broken, please knock'
+      required:
+        - city
+        - zipCode
+        - streetAddress
+    Product:
+      title: Product
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        quantity:
+          type: string
+        TODO:
+          type: string
+    CreatedDeliveryNote:
+      title: CreatedDeliveryNote
+      description: A delivery note after creation.
+      allOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            status:
+              $ref: '#/components/schemas/DeliveryNoteStatus'
+            uuid:
+              type: string
+              description: |-
+                A globally unique identifier for the delivery note.
+                This field is automatically generated on creation.
+                The UUID is in lowercase, and in the short format without hyphen characters.
+              minLength: 32
+              maxLength: 32
+              pattern: '[0-9a-f]+'
+              example: c4db0608bac44a739ec752c48ba9b4da
+            uri:
+              type: string
+              format: uri
+              description: |-
+                The URI for this delivery note in the BauApp system.
+                This is the URI that's encoded in the delivery note QR code.
+                It consists of a fixed base URI and the uuid of the delivery note.
+              example: 'https://bauapp.hu/szallitolevel/c4db0608bac44a739ec752c48ba9b4da'
+        - $ref: '#/components/schemas/NewDeliveryNote'
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      description: |-
+        The API key for the application must be sent in the HTTP Authorization header as such:
+        ```
+        Authorization: Bearer MyApiKey123
+        ```
+        Requests without an API key or with an invalid API key will result in a HTTP 401 error code.
+  parameters:
+    deliveryNoteId:
+      name: deliveryNoteId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: 'The unique identifier of the delivery note, as supplied in the `id` field when creating the delivery note.'
+  responses: {}
+security:
+  - BearerToken: []
