@@ -169,113 +169,115 @@ components:
           description: |-
             The date and time when the delivery note was issued.
             The value of this field is not verified, it can be in the far past or in the future.
-        supplierName:
-          type: string
-          example: BauApp Kft.
-          description: Name of the company who issued the delivery note.
-        supplierWarehouse:
-          type: string
-          example: Fő telephely
-          description: |-
-            The premise where the delivery note was issued.
-            If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
-        supplierAddress:
-          oneOf:
-            - $ref: '#/components/schemas/Address'
-          description: Address of the company who issued the delivery note.
-        supplierTaxNumber:
-          type: string
-          example: 52725916-2-05
-          description: Tax number of the company who issued the delivery note.
-        customerName:
-          type: string
-          description: Name of the company who is the customer of the delivery note.
-          example: HufBau Akker
-        customerAddress:
-          oneOf:
-            - $ref: '#/components/schemas/Address'
-          description: Address of the company who is the customer of the delivery note.
-        customerBauAppCompanyId:
-          type: string
-          description: |-
-            The customer’s BA Company ID which the issuer might provide so that the customer can receive 
-            the issued delivery note file digitally via the BauApp system.
-          example: BA134532
-        deliveryAddress:
-          oneOf:
-            - $ref: '#/components/schemas/Address'
-          description: The address where the delivery will be received.
+        supplier:
+          allOf:
+          - type: object
+            additionalProperties: false
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                example: BauApp Kft.
+                description: Name of the company who issued the delivery note.
+              warehouse:
+                type: string
+                example: Révay utcai telephely
+                description: |-
+                  The premise where the delivery note was issued.
+                  
+                  If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
+              taxNumber:
+                type: string
+                example: 52725916-2-05
+                description: Tax number of the company who issued the delivery note.
+          - $ref: '#/components/schemas/Address'
+          description: Fields related to the issuer of the delivery note.
+        customer:
+          allOf:
+          - type: object
+            additionalProperties: false
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: Name of the company who is the customer of the delivery note.
+                example: HufBau Akker
+              bauAppCompanyId:
+                type: string
+                description: |-
+                  The customer’s BA Company ID which the issuer might provide so that the customer can receive 
+                  the issued delivery note file digitally via the BauApp system.
+                example: BA134532
+          - $ref: '#/components/schemas/Address'
+          description: Fields related to the customer.
+        delivery:
+          allOf:
+          - type: object
+            additionalProperties: false
+            required:
+              - recipientName
+            properties:
+              recipientName:
+                type: string
+                description: |-
+                  The name - and possibly additional info - of the person who will receive the delivery 
+                  note at the delivery address.
+                example: Kovács Imre, +36204791543
+          - $ref: '#/components/schemas/Address'
+          - type: object
+            additionalProperties: false
+            properties:
+              ekaerNumber:
+                type: string
+                example: E2033061203BFE0
+                description: Identification number of the delivery from the Hungarian tax bureau (NAV).
+              haulierName:
+                type: string
+                example: Kelet-Transz Kft.
+                description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
+              haulierBauAppCompanyId:
+                type: string
+                example: BA735372
+                description: |-
+                  The haulier’s BA Company ID which the issuer might provide so that the 
+                  haulier can receive the received delivery note file digitally via the BauApp system.
+          description: Delivery address and transport information.
         products:
           type: array
           minItems: 1
           description: The products and their quantity which are listed on the delivery note.
           items:
             $ref: '#/components/schemas/Product'
-        # uniqueCustomerCode:
-        #   type: string
-        #   example: '1089000'
-        #   description: The manufacturers’ unique identifier  code for their customers.
-        # purchaseOrderNumber:
-        #   type: string
-        #   example: PO6375327
-        #   description: Additional identifier from the manufacturer’s ERP system.
-        # assignmentNumber:
-        #   type: string
-        #   example: R4-20-00179
-        #   description: Additional identifier from the manufacturer’s ERP system.
-        # referenceNumber:
-        #   type: string
-        #   example: 182230/DTS
-        #   description: Additional identifier from the manufacturer’s ERP system.
-        # purchaseDate:
-        #   type: string
-        #   format: date
-        #   example: '2021-01-14'
-        #   description: Additional date from the manufacturer’s ERP system.
-        # fulfillmentDate:
-        #   type: string
-        #   format: date
-        #   example: '2021-01-20'
-        #   description: Additional date from the manufacturer’s ERP system.
-        ekaerNumber:
+        netWeight:
           type: string
-          example: E2033061203BFE0
-          description: Identification number of the delivery from the Hungarian tax bureau (NAV).
-        haulierName:
-          type: string
-          example: Kelet-Transz Kft.
-          description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
-        haulierBauAppCompanyId:
-          type: string
-          example: BA735372
-          description: |-
-            The haulier’s BA Company ID which the issuer might provide so that the 
-            haulier can receive the received delivery note file digitally via the BauApp system.
-        totalNetWeight:
-          type: string
-          description: 'Net weight, including weight units.'
+          description: 'Total net weight of all products. Also includes weight units in the field.'
           example: 970 kg
-        totalGrossWeight:
+        grossWeight:
           type: string
-          description: 'Gross weight, including weight units.'
+          description: 'Total gross weight of all products. Also includes weight units in the field.'
           example: 1t
         other:
           type: object
           additionalProperties:
             type: string
           description: |-
-            Additional data to be stored along with this delivery note.
-            This field is meant to allow storage of miscellaneous fields your ERP system might need.
+            Additional key-value pairs to be stored along with this delivery note.
+            This field is meant to allow storage of miscellaneous fields your ERP system might need, such as:
+            - PO (Purchase order) number
+            - Assignment number
+            - Reference number
+            - Date of purchase
+            - Date of fulfillment
+
             Values in this field are ignored by the BauApp system.
       required:
         - id
         - issueDate
-        - supplierName
-        - supplierWarehouse
-        - supplierAddress
-        - customerName
-        - customerAddress
-        - deliveryAddress
+        - supplier
+        - customer
+        - delivery
         - products
     DeliveryNoteStatus:
       type: string
@@ -292,10 +294,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        name:
-          type: string
-          description: The name recipient or the sender.
-          example: Kovács Béla
         country:
           type: string
           example: Hungary
@@ -308,12 +306,6 @@ components:
         streetAddress:
           type: string
           example: 'Bartók Béla út 42, II/4'
-        phoneNumber:
-          type: string
-          example: '+3615552401'
-        comment:
-          type: string
-          example: 'Doorbell is broken, please knock'
       required:
         - city
         - zipCode
@@ -335,6 +327,10 @@ components:
       allOf:
         - type: object
           additionalProperties: false
+          required:
+            - status
+            - uuid
+            - uri
           properties:
             status:
               $ref: '#/components/schemas/DeliveryNoteStatus'
