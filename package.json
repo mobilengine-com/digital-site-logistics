@@ -2,14 +2,14 @@
   "name": "digital_site_logistics_apis",
   "description": "",
   "scripts": {
-    "html": "openapi-generator-cli.cmd generate -g html -i delivery_note.v1.yaml -o html",
-    "html2": "openapi-generator-cli.cmd generate -g html2 -i delivery_note.v1.yaml -o html2",
-    "asciidoc": "openapi-generator-cli.cmd generate -g asciidoc -i delivery_note.v1.yaml -o asciidoc",
-    "csharp": "openapi-generator-cli.cmd generate -g csharp -i delivery_note.v1.yaml -o csharp",
-    "aspnetcore": "openapi-generator-cli.cmd generate -g aspnetcore -i delivery_note.v1.yaml -o aspnetcore --additional-properties=aspnetCoreVersion=3.1",
-    "markdown": "openapi-generator-cli.cmd generate -g markdown -i delivery_note.v1.yaml -o markdown",
-    "openapi": "openapi-generator-cli.cmd generate -g openapi -i delivery_note.v1.yaml -o openapi",
-    "redoc": "redoc-cli bundle delivery_note.v1.yaml --options.expandResponses=all --options.pathInMiddlePanel=true --options.disableSearch=true --options.nativeScrollbars=true --options.jsonSampleExpandLevel=99 --options.hideDownloadButton=true --expandSingleSchemaField=true"
+    "html": "openapi-generator-cli.cmd generate -g html -i delivery_note.yaml -o html",
+    "html2": "openapi-generator-cli.cmd generate -g html2 -i delivery_note.yaml -o html2",
+    "asciidoc": "openapi-generator-cli.cmd generate -g asciidoc -i delivery_note.yaml -o asciidoc",
+    "csharp": "openapi-generator-cli.cmd generate -g csharp -i delivery_note.yaml -o csharp",
+    "aspnetcore": "openapi-generator-cli.cmd generate -g aspnetcore -i delivery_note.yaml -o aspnetcore --additional-properties=aspnetCoreVersion=3.1",
+    "markdown": "openapi-generator-cli.cmd generate -g markdown -i delivery_note.yaml -o markdown",
+    "openapi": "openapi-generator-cli.cmd generate -g openapi -i delivery_note.yaml -o openapi",
+    "redoc": "redoc-cli bundle delivery_note.yaml --options.expandResponses=all --options.pathInMiddlePanel=true --options.disableSearch=true --options.nativeScrollbars=true --options.jsonSampleExpandLevel=99 --options.hideDownloadButton=true --expandSingleSchemaField=true"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.1.17",
