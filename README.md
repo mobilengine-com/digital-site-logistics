@@ -1,7 +1,7 @@
 Prerequisites
 ===============
-* Install Java 1.8 or later, make sur java.exe is found in the PATH
-* Install NodeJS LTS (currently version 14)
+* Install Java 1.8 or later, make sure `java.exe` is found in the PATH
+* Install NodeJS 14
 
 Installation
 ==============
@@ -13,9 +13,10 @@ Run `npm run {generator}` where generator is one of
 
 * redoc - recommended, generates a nice HTML documentation
 * openapi - converts the YAML to JSON
-* html
-* html2
-* asciidoc
-* csharp
-* aspnetcore
-* markdown
+
+Other less useful generators are also defined in `package.json`.
+
+Generating a PDF
+=================
+* make the YAML file available through HTTP, for example by uploading it as a Github Gist.
+* Use the public URL at [RapiPdf](https://mrin9.github.io/RapiPdf/)
