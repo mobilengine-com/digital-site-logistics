@@ -141,12 +141,35 @@ paths:
           content:
             image/png:
               schema:
-                type: object
-                properties: {}
-              examples: {}
+                type: string
+                format: binary
         '404':
           description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
       operationId: getDeliveryNoteQRCode
+  '/delivery_notes/{deliveryNoteId}/receipt':
+    parameters:
+      - $ref: '#/components/parameters/deliveryNoteId'
+    get:
+      summary: Get the delivery note receipt PDF
+      description: |-
+        Download the received delivery note - a .pdf file of the delivery note with a digital stamp that contains data 
+        from the delivery.
+
+        Only available after the delivery note was received, see the `status` field on the delivery note.
+      responses:
+        '200':
+          description: |-
+            The received delivery note PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: |-
+            The delivery note with the specified id was not found, or is not accessible with this API key.
+            Also returned if the delivery note is not in the `received` state yet.
+      operationId: getDeliveryNoteReceipt
 components:
   schemas:
     NewDeliveryNote:
@@ -352,6 +375,39 @@ components:
                 This is the URI that's encoded in the delivery note QR code.
                 It consists of a fixed base URI and the uuid of the delivery note.
               example: 'https://bauapp.hu/szallitolevel/c4db0608bac44a739ec752c48ba9b4da'
+            reception:
+              type: object
+              description: |-
+                Contains information about the reception of the delivery.
+                Only present after the status of the deliver note has been changed to `received`.
+              additionalProperties: false
+              required:
+                - name
+                - company
+                - date
+              properties:
+                name:
+                  type: string
+                  description: |-
+                    The username of the person who received the delivery note in the BauApp application
+                  example: kovacs.imre
+                company:
+                  type: string
+                  example: Generál Kivitelező Kft.
+                  description: |-
+                    The company who actually received the materials on the construction site.
+                date:
+                  type: string
+                  format: datetime
+                  example: '2021-01-25T11:29:22Z'
+                  description: |-
+                    The exact date when the delivery note was received.
+                notes:
+                  type: string
+                  description: |-
+                    Contains qualitative and quantitative notes that were recorded 
+                    upon receiving the delivery note.
+                  example: Clay block - 8 instead of 10 packages
         - $ref: '#/components/schemas/NewDeliveryNote'
   securitySchemes:
     BearerToken:
