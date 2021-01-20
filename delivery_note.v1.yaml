@@ -40,7 +40,10 @@ info:
     1. Create a delivery note, by sending a POST message to the `/delivery_notes` path.
     2. Get the QR code for the delivery note. For this, get the QR code PNG from `/delivery_notes/{id}/qr_code`.
     3. Use the QR code somewhere on your physical delivery note document.
-    4. Poll the delivery note path for status changes. The status field of the delivery note is updated shortly after the QR code is scanned by the recipient of the delivery. Currently there isn't any other way to be notified of status changes to the delivery note (no webhooks or updates through websockets).
+    4. Poll the delivery note path for status changes. The status field of the delivery note is updated shortly 
+      after the QR code is scanned by the recipient of the delivery. Currently there isn't any other way to be 
+      notified of status changes to the delivery note (no webhooks or updates through websockets).
+    5. Download the delivery receipt PDF from from `/delivery_notes/{id}/receipt`.
 
     ## Updating delivery notes
     The API doesn't allow updating delivery notes after creation.
@@ -85,6 +88,8 @@ paths:
                 The link is `/delivery_notes/{id}` where `{id}` is the `id` field supplied in the request JSON.
         '400':
           description: Bad Request. The response body contains a human-readable description of the error.
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '409':
           description: 'Conflict, a delivery note with this id already exists.'
         '413':
@@ -112,6 +117,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreatedDeliveryNote'
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '404':
           description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
       operationId: getDeliveryNote
@@ -119,11 +126,6 @@ paths:
         The delivery note with the id must exist, otherwise a HTTP 404 status is returned.
 
         The delivery note contains a few extra fields along with the ones supplied during its creation.
-        These are the following:
-          - uuid
-          - status
-          - uri
-
         See the `CreatedDelvieryNote` model definition for details.
   '/delivery_notes/{deliveryNoteId}/qr_code':
     parameters:
@@ -143,6 +145,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '404':
           description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
       operationId: getDeliveryNoteQRCode
@@ -165,6 +169,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '404':
           description: |-
             The delivery note with the specified id was not found, or is not accessible with this API key.
