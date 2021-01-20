@@ -273,12 +273,45 @@ components:
                   The haulier’s BA Company ID which the issuer might provide so that the 
                   haulier can receive the received delivery note file digitally via the BauApp system.
           description: Delivery address and transport information.
-        products:
+        items:
           type: array
           minItems: 1
-          description: The products and their quantity which are listed on the delivery note.
+          description: The products and their quantities which are listed on the delivery note.
           items:
-            $ref: '#/components/schemas/Product'
+            type: object
+            additionalProperties: false
+            properties:
+              productId:
+                description: |-
+                  A product is identified either with a _(manufacturerId, SKU)_ pair, or a BauApp Product identifier.
+
+                  These two identifier types may be freely mixed in one delivey note.
+                oneOf:
+                  - type: object
+                    additionalProperties: false
+                    properties:
+                      manufacturerId:
+                        type: string
+                        description: Manufacturer company's BauApp ID
+                        example: BA123456
+                      manufacturerSku:
+                        type: string
+                        description: Manufacturer specific stock keeping unit (SKU) identifier of the product
+                        example: 029351293
+                  - type: string
+                    description: BauApp Product ID
+                    example: BA123456789
+              amount:
+                type: integer
+                format: int32
+                description: The number of items of this product.
+            example:
+              - productId:
+                  manufacturerId: BA123456
+                  manufacturerSku: 029351293
+                amount: 200
+              - productId: BA123456789
+                amount: 50
         netWeight:
           type: string
           description: 'Total net weight of all products. Also includes weight units in the field.'
@@ -314,10 +347,10 @@ components:
       description: |-
         The current delivery status of the delivery note.
 
-        All delivery notes start with a `created` status, and change to the `delivered` status shortly after the delivery note QR code is scanned by the recipient.
+        All delivery notes start with a `created` status, and change to the `received` status shortly after the delivery note QR code is scanned by the recipient.
       enum:
         - created
-        - delivered
+        - received
     Address:
       title: Address
       type: object
@@ -339,17 +372,6 @@ components:
         - city
         - zipCode
         - streetAddress
-    Product:
-      title: Product
-      type: object
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-        quantity:
-          type: string
-        TODO:
-          type: string
     CreatedDeliveryNote:
       title: CreatedDeliveryNote
       description: A delivery note after creation.
@@ -383,10 +405,10 @@ components:
               example: 'https://bauapp.hu/szallitolevel/c4db0608bac44a739ec752c48ba9b4da'
             reception:
               type: object
+              additionalProperties: false
               description: |-
                 Contains information about the reception of the delivery.
                 Only present after the status of the deliver note has been changed to `received`.
-              additionalProperties: false
               required:
                 - name
                 - company
