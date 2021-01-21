@@ -235,10 +235,11 @@ components:
                 example: HufBau Akker
               bauAppCompanyId:
                 type: string
+                example: BA134532
+                pattern: 'BA[0-9]{6}'
                 description: |-
                   The customer’s BA Company ID which the issuer might provide so that the customer can receive 
                   the issued delivery note file digitally via the BauApp system.
-                example: BA134532
           - $ref: '#/components/schemas/Address'
           description: Fields related to the customer.
         delivery:
@@ -269,6 +270,7 @@ components:
               haulierBauAppCompanyId:
                 type: string
                 example: BA735372
+                pattern: 'BA[0-9]{6}'
                 description: |-
                   The haulier’s BA Company ID which the issuer might provide so that the 
                   haulier can receive the received delivery note file digitally via the BauApp system.
@@ -292,15 +294,17 @@ components:
                     properties:
                       manufacturerId:
                         type: string
-                        description: Manufacturer company's BauApp ID
                         example: BA123456
+                        pattern: 'BA[0-9]{6}'
+                        description: Manufacturer company's BauApp ID
                       manufacturerSku:
                         type: string
                         description: Manufacturer specific stock keeping unit (SKU) identifier of the product
                         example: 029351293
                   - type: string
-                    description: BauApp Product ID
                     example: BA123456789
+                    pattern: 'BA[0-9]{9}'
+                    description: BauApp Product ID
               amount:
                 type: integer
                 format: int32
