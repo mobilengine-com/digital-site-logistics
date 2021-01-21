@@ -62,6 +62,9 @@ info:
     Explicit rate limit values are to be determined later.
 
     Rate limits on the sandbox server may be stricter than on the production server.
+
+    ## Request size
+    The request body size of new delivery notes is limited to 256KiB.
   contact:
     name: BauApp
     url: 'https://www.bauapp.com/'
@@ -87,14 +90,22 @@ paths:
                 A link to the newly created delivery note.
                 The link is `/delivery_notes/{id}` where `{id}` is the `id` field supplied in the request JSON.
         '400':
-          description: Bad Request. The response body contains a human-readable description of the error.
+          description: |-
+            Bad Request. The response body contains a human-readable description of the error.
+
+            Possible reasons include:
+            * the request body is not a valid JSON document
+            * the shape of the JSON document doesn't match 
+            * missing or invalid fields
+            * using field outside of the `other` field that is not defined in the schema
+            * product ID not in the BauApp database
         '401':
           description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '409':
           description: 'Conflict, a delivery note with this id already exists.'
         '413':
           description: |-
-            The request is too large. Request body size for creating delivery notes is limited to 64kB.
+            The request is too large. The request body size for creating delivery notes is limited to 256KiB.
       description: |-
         All the products in the delivery note must be created before creating a delivery note.
         The delivery note with the specified id must not exist yet.
@@ -186,11 +197,12 @@ components:
       properties:
         id:
           type: string
+          minLength: 1
+          example: K20223223SL
           description: |-
             The unique identifier for the delivery note, as 
             The format of the note is not fixed, any identifier format can be used.
             The identifier doesn't need to be globally unique, it's enough that it's unique for the current user (the one identified by the API key).
-          example: K20223223SL
         issueDate:
           format: date-time
           type: string
@@ -278,7 +290,9 @@ components:
         items:
           type: array
           minItems: 1
-          description: The products and their quantities which are listed on the delivery note.
+          description: |- 
+            The products and their quantities which are listed on the delivery note.
+            At least one item is required.
           items:
             type: object
             additionalProperties: false
@@ -308,6 +322,7 @@ components:
               amount:
                 type: integer
                 format: int32
+                minimum: 1
                 description: The number of items of this product.
             example:
               - productId:
