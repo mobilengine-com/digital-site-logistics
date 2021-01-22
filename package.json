@@ -9,7 +9,7 @@
     "aspnetcore": "openapi-generator-cli.cmd generate -g aspnetcore -i delivery_note.yaml -o aspnetcore --additional-properties=aspnetCoreVersion=3.1",
     "markdown": "openapi-generator-cli.cmd generate -g markdown -i delivery_note.yaml -o markdown",
     "openapi": "openapi-generator-cli.cmd generate -g openapi -i delivery_note.yaml -o openapi",
-    "redoc": "redoc-cli bundle delivery_note.yaml --options.expandResponses=all --options.pathInMiddlePanel=true --options.disableSearch=true --options.nativeScrollbars=true --options.jsonSampleExpandLevel=99 --options.hideDownloadButton=true --expandSingleSchemaField=true && mv redoc-static.html delivery_note.html"
+    "redoc": "redoc-cli bundle delivery_note.yaml --options.expandResponses=all --options.pathInMiddlePanel=true --options.disableSearch=true --options.nativeScrollbars=true --options.jsonSampleExpandLevel=99 --options.hideDownloadButton=true --expandSingleSchemaField=true && mv redoc-static.html docs/index.html"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.1.17",
