@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Delivery Note API
-  version: '0.1'
+  title: Digital Site Logistics Standard - Technical Guide
+  version: 'V14'
   description: |-
     ## Introduction
     The Delivery Note API is a REST API for creating delivery notes, getting a printable QR code for a delivery note and checking the status of the created delivery note.
@@ -67,7 +67,7 @@ info:
     The request body size of new delivery notes is limited to 256KiB.
   contact:
     name: BauApp
-    url: 'https://www.bauapp.com/'
+    url: 'https://bauapp.hu/api'
     email: hello@bauapp.com
 servers:
   - url: 'https://sandbox.to_be_determined.example.net/v1'
