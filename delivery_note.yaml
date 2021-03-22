@@ -64,7 +64,7 @@ info:
     Rate limits on the sandbox server may be stricter than on the production server.
 
     ## Request size
-    The request body size of new delivery notes is limited to 256KiB.
+    The request body size of create (POST) operations is limited. See each create operation for the exact size limits.
   contact:
     name: BauApp
     url: 'https://bauapp.hu/api'
@@ -74,11 +74,79 @@ servers:
     description: 'Sandbox environment, for testing API clients.'
   - url: 'https://to_be_determined.example.net/v1'
     description: Production environment
+tags:
+  - name: Delivery Notes
+    description: "API calls related to Delivery Notes"
+  - name: Products
+    description: "API calls related to Delivery Notes"
 paths:
+  /products:
+    post:
+      summary: Create a new product
+      operationId: createProduct
+      tags: [Products]
+      responses:
+        '201':
+          description: The product was created.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |-
+                A relative link to the newly created product.
+        '202':
+          description: The same product already exists.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |-
+                A relative link to the already existing product.
+        '400':
+          description: |-
+            Bad Request. The response body contains a human-readable description of the error.
+
+            Possible reasons include:
+            * the request body is not a valid JSON document
+            * the shape of the JSON document doesn't match 
+            * missing or invalid fields
+            * using field outside of the `other` field that is not defined in the schema
+            * product ID not in the BauApp database
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
+        '413':
+          description: |-
+            The request is too large. The request body size for creating products is limited to 16KiB.
+      description: |-
+        All the products in the delivery note must be created before creating a delivery note.
+        The delivery note with the specified id must not exist yet.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct'
+        description: The product to create.
+        required: true
+  /products/{id}:
+    get:
+      summary: Get a product by its BauApp ID
+      operationId: getProduct
+      tags: [Products]
+      responses:
+        '200':
+          description: The product was found. TODO - body
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
+        '404':
+          description: No product was found for the specified identifier.
+      description: |-
+        All the products in the delivery note must be created before creating a delivery note.
+        The delivery note with the specified id must not exist yet.
   /delivery_notes:
     post:
       summary: Create a new delivery note
       operationId: createDeliveryNote
+      tags: ["Delivery Notes"]
       responses:
         '201':
           description: The delivery note was created.
@@ -116,11 +184,22 @@ paths:
               $ref: '#/components/schemas/NewDeliveryNote'
         description: The delivery note to create.
         required: true
+    get:
+      summary: Get the delivery notes stored in the system
+      tags: ["Delivery Notes"]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOfDeliveryNotes'
   '/delivery_notes/{deliveryNoteId}':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
     get:
       summary: Get an existing delivery note
+      tags: ["Delivery Notes"]
       responses:
         '200':
           description: OK
@@ -143,6 +222,7 @@ paths:
       - $ref: '#/components/parameters/deliveryNoteId'
     get:
       summary: Get the QR code for the delivery note
+      tags: ["Delivery Notes"]
       responses:
         '200':
           description: |-
@@ -171,6 +251,7 @@ paths:
         from the delivery.
 
         Only available after the delivery note was received, see the `status` field on the delivery note.
+      tags: ["Delivery Notes"]
       responses:
         '200':
           description: |-
@@ -456,6 +537,40 @@ components:
                     upon receiving the delivery note.
                   example: Clay block - 8 instead of 10 packages
         - $ref: '#/components/schemas/NewDeliveryNote'
+    NewProduct:
+      title: NewProduct
+      type: object
+      description: Data for creating a new product.
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: TODO
+          description: |-
+            The name of the product
+      required:
+        - name
+    CreatedProduct:
+      title: Product
+      type: object
+      description: The details of a product.
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          example: TODO
+          description: |-
+            The BauApp product identifier of the product.
+        name:
+          type: string
+          minLength: 1
+          example: TODO
+          description: |-
+            The name of the product
+      required:
+        - name
   securitySchemes:
     BearerToken:
       type: http
