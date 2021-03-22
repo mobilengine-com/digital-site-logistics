@@ -76,9 +76,9 @@ servers:
     description: Production environment
 tags:
   - name: Delivery Notes
-    description: API calls related to Delivery Notes
+    description: API calls handling Delivery Notes
   - name: Products
-    description: API calls related to Delivery Notes
+    description: API calls handling Products
 paths:
   /products:
     post:
