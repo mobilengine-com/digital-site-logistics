@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Digital Site Logistics Standard - Technical Guide
-  version: 'V14'
+  version: V14
   description: |-
     ## Introduction
     The Delivery Note API is a REST API for creating delivery notes, getting a printable QR code for a delivery note and checking the status of the created delivery note.
@@ -76,15 +76,16 @@ servers:
     description: Production environment
 tags:
   - name: Delivery Notes
-    description: "API calls related to Delivery Notes"
+    description: API calls related to Delivery Notes
   - name: Products
-    description: "API calls related to Delivery Notes"
+    description: API calls related to Delivery Notes
 paths:
   /products:
     post:
       summary: Create a new product
       operationId: createProduct
-      tags: [Products]
+      tags:
+        - Products
       responses:
         '201':
           description: The product was created.
@@ -92,16 +93,14 @@ paths:
             Location:
               schema:
                 type: string
-              description: |-
-                A relative link to the newly created product.
+              description: A relative link to the newly created product.
         '202':
           description: The same product already exists.
           headers:
             Location:
               schema:
                 type: string
-              description: |-
-                A relative link to the already existing product.
+              description: A relative link to the already existing product.
         '400':
           description: |-
             Bad Request. The response body contains a human-readable description of the error.
@@ -115,8 +114,7 @@ paths:
         '401':
           description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '413':
-          description: |-
-            The request is too large. The request body size for creating products is limited to 16KiB.
+          description: The request is too large. The request body size for creating products is limited to 16KiB.
       description: |-
         All the products in the delivery note must be created before creating a delivery note.
         The delivery note with the specified id must not exist yet.
@@ -127,26 +125,32 @@ paths:
               $ref: '#/components/schemas/NewProduct'
         description: The product to create.
         required: true
-  /products/{id}:
+  '/products/{productId}':
     get:
       summary: Get a product by its BauApp ID
       operationId: getProduct
-      tags: [Products]
+      tags:
+        - Products
       responses:
         '200':
-          description: The product was found. TODO - body
+          description: The product was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedProduct'
         '401':
           description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '404':
           description: No product was found for the specified identifier.
-      description: |-
-        All the products in the delivery note must be created before creating a delivery note.
-        The delivery note with the specified id must not exist yet.
+      description: Get the details of an already existing product.
+    parameters:
+      - $ref: '#/components/parameters/productId'
   /delivery_notes:
     post:
       summary: Create a new delivery note
       operationId: createDeliveryNote
-      tags: ["Delivery Notes"]
+      tags:
+        - Delivery Notes
       responses:
         '201':
           description: The delivery note was created.
@@ -172,8 +176,7 @@ paths:
         '409':
           description: 'Conflict, a delivery note with this id already exists.'
         '413':
-          description: |-
-            The request is too large. The request body size for creating delivery notes is limited to 256KiB.
+          description: The request is too large. The request body size for creating delivery notes is limited to 256KiB.
       description: |-
         All the products in the delivery note must be created before creating a delivery note.
         The delivery note with the specified id must not exist yet.
@@ -186,20 +189,34 @@ paths:
         required: true
     get:
       summary: Get the delivery notes stored in the system
-      tags: ["Delivery Notes"]
+      tags:
+        - Delivery Notes
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageOfDeliveryNotes'
+                $ref: '#/components/schemas/DeliveryNotes'
+      operationId: listDeliveryNotes
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: olderThan
+          description: A delivery note id. The result will only contain delivery notes that were created before the specified note.
+      description: |-
+        Returns delivery notes in order of creation, most recent first.
+        The number of items returned is limited to a fixed number.
+        To get the next page of notes call the endpoint with the {from} parameter, using the ID of the oldest (last) note that you received.
+    parameters: []
   '/delivery_notes/{deliveryNoteId}':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
     get:
       summary: Get an existing delivery note
-      tags: ["Delivery Notes"]
+      tags:
+        - Delivery Notes
       responses:
         '200':
           description: OK
@@ -222,7 +239,8 @@ paths:
       - $ref: '#/components/parameters/deliveryNoteId'
     get:
       summary: Get the QR code for the delivery note
-      tags: ["Delivery Notes"]
+      tags:
+        - Delivery Notes
       responses:
         '200':
           description: |-
@@ -251,11 +269,11 @@ paths:
         from the delivery.
 
         Only available after the delivery note was received, see the `status` field on the delivery note.
-      tags: ["Delivery Notes"]
+      tags:
+        - Delivery Notes
       responses:
         '200':
-          description: |-
-            The received delivery note PDF.
+          description: The received delivery note PDF.
           content:
             application/pdf:
               schema:
@@ -293,85 +311,85 @@ components:
             The value of this field is not verified, it can be in the far past or in the future.
         supplier:
           allOf:
-          - type: object
-            additionalProperties: false
-            required:
-              - name
-            properties:
-              name:
-                type: string
-                example: BauApp Kft.
-                description: Name of the company who issued the delivery note.
-              warehouse:
-                type: string
-                example: Révay utcai telephely
-                description: |-
-                  The premise where the delivery note was issued.
-                  
-                  If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
-              taxNumber:
-                type: string
-                example: 52725916-2-05
-                description: Tax number of the company who issued the delivery note.
-          - $ref: '#/components/schemas/Address'
+            - type: object
+              additionalProperties: false
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: BauApp Kft.
+                  description: Name of the company who issued the delivery note.
+                warehouse:
+                  type: string
+                  example: Révay utcai telephely
+                  description: |-
+                    The premise where the delivery note was issued.
+
+                    If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
+                taxNumber:
+                  type: string
+                  example: 52725916-2-05
+                  description: Tax number of the company who issued the delivery note.
+            - $ref: '#/components/schemas/Address'
           description: Fields related to the issuer of the delivery note.
         customer:
           allOf:
-          - type: object
-            additionalProperties: false
-            required:
-              - name
-            properties:
-              name:
-                type: string
-                description: Name of the company who is the customer of the delivery note.
-                example: HufBau Akker
-              bauAppCompanyId:
-                type: string
-                example: BA134532
-                pattern: 'BA[0-9]{6}'
-                description: |-
-                  The customer’s BA Company ID which the issuer might provide so that the customer can receive 
-                  the issued delivery note file digitally via the BauApp system.
-          - $ref: '#/components/schemas/Address'
+            - type: object
+              additionalProperties: false
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Name of the company who is the customer of the delivery note.
+                  example: HufBau Akker
+                bauAppCompanyId:
+                  type: string
+                  example: BA134532
+                  pattern: 'BA[0-9]{6}'
+                  description: |-
+                    The customer’s BA Company ID which the issuer might provide so that the customer can receive 
+                    the issued delivery note file digitally via the BauApp system.
+            - $ref: '#/components/schemas/Address'
           description: Fields related to the customer.
         delivery:
           allOf:
-          - type: object
-            additionalProperties: false
-            required:
-              - recipientName
-            properties:
-              recipientName:
-                type: string
-                description: |-
-                  The name - and possibly additional info - of the person who will receive the delivery 
-                  note at the delivery address.
-                example: Kovács Imre, +36204791543
-          - $ref: '#/components/schemas/Address'
-          - type: object
-            additionalProperties: false
-            properties:
-              ekaerNumber:
-                type: string
-                example: E2033061203BFE0
-                description: Identification number of the delivery from the Hungarian tax bureau (NAV).
-              haulierName:
-                type: string
-                example: Kelet-Transz Kft.
-                description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
-              haulierBauAppCompanyId:
-                type: string
-                example: BA735372
-                pattern: 'BA[0-9]{6}'
-                description: |-
-                  The haulier’s BA Company ID which the issuer might provide so that the 
-                  haulier can receive the received delivery note file digitally via the BauApp system.
+            - type: object
+              additionalProperties: false
+              required:
+                - recipientName
+              properties:
+                recipientName:
+                  type: string
+                  description: |-
+                    The name - and possibly additional info - of the person who will receive the delivery 
+                    note at the delivery address.
+                  example: 'Kovács Imre, +36204791543'
+            - $ref: '#/components/schemas/Address'
+            - type: object
+              additionalProperties: false
+              properties:
+                ekaerNumber:
+                  type: string
+                  example: E2033061203BFE0
+                  description: Identification number of the delivery from the Hungarian tax bureau (NAV).
+                haulierName:
+                  type: string
+                  example: Kelet-Transz Kft.
+                  description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
+                haulierBauAppCompanyId:
+                  type: string
+                  example: BA735372
+                  pattern: 'BA[0-9]{6}'
+                  description: |-
+                    The haulier’s BA Company ID which the issuer might provide so that the 
+                    haulier can receive the received delivery note file digitally via the BauApp system.
           description: Delivery address and transport information.
         items:
           type: array
           minItems: 1
-          description: |- 
+          description: |-
             The products and their quantities which are listed on the delivery note.
             At least one item is required.
           items:
@@ -395,7 +413,7 @@ components:
                       manufacturerSku:
                         type: string
                         description: Manufacturer specific stock keeping unit (SKU) identifier of the product
-                        example: 029351293
+                        example: 29351293
                   - type: string
                     example: BA123456789
                     pattern: 'BA[0-9]{9}'
@@ -408,17 +426,17 @@ components:
             example:
               - productId:
                   manufacturerId: BA123456
-                  manufacturerSku: 029351293
+                  manufacturerSku: 29351293
                 amount: 200
               - productId: BA123456789
                 amount: 50
         netWeight:
           type: string
-          description: 'Total net weight of all products. Also includes weight units in the field.'
+          description: Total net weight of all products. Also includes weight units in the field.
           example: 970 kg
         grossWeight:
           type: string
-          description: 'Total gross weight of all products. Also includes weight units in the field.'
+          description: Total gross weight of all products. Also includes weight units in the field.
           example: 1t
         other:
           type: object
@@ -516,20 +534,17 @@ components:
               properties:
                 name:
                   type: string
-                  description: |-
-                    The username of the person who received the delivery note in the BauApp application
+                  description: The username of the person who received the delivery note in the BauApp application
                   example: kovacs.imre
                 company:
                   type: string
                   example: Generál Kivitelező Kft.
-                  description: |-
-                    The company who actually received the materials on the construction site.
+                  description: The company who actually received the materials on the construction site.
                 date:
                   type: string
                   format: datetime
                   example: '2021-01-25T11:29:22Z'
-                  description: |-
-                    The exact date when the delivery note was received.
+                  description: The exact date when the delivery note was received.
                 notes:
                   type: string
                   description: |-
@@ -547,30 +562,27 @@ components:
           type: string
           minLength: 1
           example: TODO
-          description: |-
-            The name of the product
+          description: The name of the product
       required:
         - name
     CreatedProduct:
       title: Product
-      type: object
       description: The details of a product.
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          minLength: 1
-          example: TODO
-          description: |-
-            The BauApp product identifier of the product.
-        name:
-          type: string
-          minLength: 1
-          example: TODO
-          description: |-
-            The name of the product
-      required:
-        - name
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              minLength: 1
+              example: TODO
+              description: The BauApp product identifier of the product.
+        - $ref: '#/components/schemas/NewProduct'
+    DeliveryNotes:
+      title: DeliveryNotes
+      description: A fixed size list of delivery notes. The list is ordered by newest first.
+      type: array
+      items:
+        $ref: '#/components/schemas/CreatedDeliveryNote'
   securitySchemes:
     BearerToken:
       type: http
@@ -589,6 +601,13 @@ components:
       schema:
         type: string
       description: 'The unique identifier of the delivery note, as supplied in the `id` field when creating the delivery note.'
+    productId:
+      name: productID
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The BauApp product identifier for a product.
   responses: {}
 security:
   - BearerToken: []
