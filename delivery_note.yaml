@@ -4,7 +4,7 @@ info:
   version: V15
   description: |-
     ## Introduction
-    
+
     The Delivery Note API is a REST API for creating delivery notes, getting a printable QR code for a delivery note and checking the status of the created delivery note.
 
     The Products API supports querying and creating products used in delivery notes.
@@ -23,20 +23,10 @@ info:
 
     The API is only accessible through HTTPS.
 
-    ## Getting an API key
+    ### Getting an API key
     Administering API keys is done via the BauApp web interface.
 
     The sandbox server accepts any API key that matches the regex `[0-9a-f]{32}`.
-
-    ## Message format
-    The API consumes and produces JSON messages, with the exception of the QR code endpoint, which returns an image.
-
-    The encoding of the JSON messages must be UTF-8.
-
-    Date fields are formatted like `2020-12-31` according to OpenAPI specs.
-    Datetime values are formatted like `2020-12-31T23:59:59Z` for UTC datetimes, and `2020-12-31T23:59:59+02:00` for datetimes with an offset.
-
-    See [http://spec.openapis.org/oas/v3.0.3#data-types](http://spec.openapis.org/oas/v3.0.3#data-types) for the specification details.
 
     ## Main use case
     The main use case for the API is to
@@ -48,17 +38,39 @@ info:
       notified of status changes to the delivery note (no webhooks or updates through websockets).
     5. Download the delivery receipt PDF from from `/delivery_notes/{id}/receipt`.
 
-    ## Updating delivery notes
-    The API doesn't allow updating delivery notes after creation.
+    Optionally you can create or synchronize products before creating a delivery note.
 
-    You should just create a new note if a created note contains an error.
+    ## API Conventions
 
-    ## Data retention
+    ### Message format
+    The API consumes and produces JSON messages, with the exception of the QR code endpoint, which returns an image.
+
+    The encoding of the JSON messages must be UTF-8.
+
+    Date fields are formatted like `2020-12-31` according to OpenAPI specs.
+    Datetime values are formatted like `2020-12-31T23:59:59Z` for UTC datetimes, and `2020-12-31T23:59:59+02:00` for datetimes with an offset.
+
+    See [http://spec.openapis.org/oas/v3.0.3#data-types](http://spec.openapis.org/oas/v3.0.3#data-types) for the specification details.
+
+    ### Common response codes
+
+    HTTP 401 (Unauthorized) status is returned if the API key is missing or invalid.
+
+    HTTP 404 (Not found) status is commonly used when querying resources by an identifier, if that resource is not found.
+
+    HTTP 413 (Payload too large) status is returned when the request body is too large. 
+    This may happen if the created resource (product or delivery note) is unusually large.
+
+    HTTP 429 status is returned when the API rate limit is exceeded.
+
+    ## API Limitations
+
+    ### Data retention
     For now, the production server keeps delivery notes indefinitely.
 
     The data on the sandbox server is removed periodically.
 
-    ## Rate limiting
+    ### Rate limiting
     Rate limiting is based on the provided API key.
     If too many requests are sent in a period of time the server responds with HTTP 429 messages.
 
@@ -66,7 +78,7 @@ info:
 
     Rate limits on the sandbox server may be stricter than on the production server.
 
-    ## Request size
+    ### Request size
     The request body size of create (POST) operations is limited. See each create operation for the exact size limits.
   contact:
     name: BauApp
@@ -130,7 +142,7 @@ paths:
         required: true
   '/products/{productId}':
     get:
-      summary: Get a product by its BauApp ID
+      summary: Get a product by its DTLS ID
       operationId: getProduct
       tags:
         - Products
@@ -183,6 +195,9 @@ paths:
       description: |-
         All the products in the delivery note must be created before creating a delivery note.
         The delivery note with the specified id must not exist yet.
+
+        The API doesn't allow updating delivery notes after creation.
+        You should just create a new note if a created note contains an error.
       requestBody:
         content:
           application/json:
@@ -201,17 +216,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeliveryNotes'
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
       operationId: listDeliveryNotes
       parameters:
         - schema:
             type: string
           in: query
           name: olderThan
-          description: A delivery note id. The result will only contain delivery notes that were created before the specified note.
+          description: A delivery note ID. The result will only contain delivery notes that were created before the specified note.
       description: |-
         Returns delivery notes in order of creation, most recent first.
-        The number of items returned is limited to a fixed number.
-        To get the next page of notes call the endpoint with the {from} parameter, using the ID of the oldest (last) note that you received.
+
+        The endpoint uses paging, so it doesn't return all delivery notes at once.
+        To get the next page of notes call the endpoint with the `from` parameter, using the ID of the oldest (last) note that you received.
     parameters: []
   '/delivery_notes/{deliveryNoteId}':
     parameters:
@@ -262,14 +280,17 @@ paths:
         '404':
           description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
       operationId: getDeliveryNoteQRCode
+      description: |-
+        Returns an image of a QR code containing a link to the delivery note.
+
+        You can include this image on your own documents, and the QR code can be scanned with BauApp during delivery, setting the status of the delivery note to `received`.
   '/delivery_notes/{deliveryNoteId}/receipt':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
     get:
       summary: Get the delivery note receipt PDF
       description: |-
-        Download the received delivery note - a .pdf file of the delivery note with a digital stamp that contains data 
-        from the delivery.
+        Download the received delivery note - a .pdf file of the delivery note with information about the delivery.
 
         Only available after the delivery note was received, see the `status` field on the delivery note.
       tags:
@@ -416,7 +437,7 @@ components:
                       manufacturerSku:
                         type: string
                         description: Manufacturer specific stock keeping unit (SKU) identifier of the product
-                        example: 29351293
+                        example: '129351293'
                   - type: string
                     example: DTLS123456789
                     pattern: 'DTLS[0-9]+'
@@ -499,10 +520,6 @@ components:
       allOf:
         - type: object
           additionalProperties: false
-          required:
-            - status
-            - uuid
-            - uri
           properties:
             status:
               $ref: '#/components/schemas/DeliveryNoteStatus'
@@ -530,10 +547,6 @@ components:
               description: |-
                 Contains information about the reception of the delivery.
                 Only present after the status of the deliver note has been changed to `received`.
-              required:
-                - name
-                - company
-                - date
               properties:
                 name:
                   type: string
@@ -554,6 +567,17 @@ components:
                     Contains qualitative and quantitative notes that were recorded 
                     upon receiving the delivery note.
                   example: Clay block - 8 instead of 10 packages
+              required:
+                - name
+                - company
+                - date
+            createdDate:
+              type: string
+              description: The date and time when this delivery note was created in
+          required:
+            - status
+            - uuid
+            - uri
         - $ref: '#/components/schemas/NewDeliveryNote'
     NewProduct:
       title: NewProduct
@@ -580,6 +604,10 @@ components:
               example: TODO
               description: The DTLS product identifier of the product.
         - $ref: '#/components/schemas/NewProduct'
+        - type: object
+        - type: object
+        - type: object
+        - type: object
     DeliveryNotes:
       title: DeliveryNotes
       description: A fixed size list of delivery notes. The list is ordered by newest first.
@@ -605,7 +633,7 @@ components:
         type: string
       description: 'The unique identifier of the delivery note, as supplied in the `id` field when creating the delivery note.'
     productId:
-      name: productID
+      name: productId
       in: path
       required: true
       schema:
