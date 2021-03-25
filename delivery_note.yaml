@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Digital Site Logistics Standard - Technical Guide
-  version: V14
+  version: V15
   description: |-
     ## Introduction
     
