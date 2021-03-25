@@ -350,7 +350,7 @@ components:
                 companyId:
                   type: string
                   example: DTLS134532
-                  pattern: 'DTLS[0-9]{6}'
+                  pattern: 'DTLS[0-9]+'
                   description: |-
                     The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
                     the issued delivery note file digitally via the BauApp system.
@@ -384,7 +384,7 @@ components:
                 haulierCompanyId:
                   type: string
                   example: DTLS735372
-                  pattern: 'DTLS[0-9]{6}'
+                  pattern: 'DTLS[0-9]+'
                   description: |-
                     The haulier’s DTLS Company ID which the issuer might provide so that the 
                     haulier can receive the received delivery note file digitally via the BauApp system.
@@ -411,7 +411,7 @@ components:
                       manufacturerId:
                         type: string
                         example: DTLS123456
-                        pattern: 'DTLS[0-9]{6}'
+                        pattern: 'DTLS[0-9]+'
                         description: Manufacturer company's DTLS ID
                       manufacturerSku:
                         type: string
@@ -419,7 +419,7 @@ components:
                         example: 29351293
                   - type: string
                     example: DTLS123456789
-                    pattern: 'DTLS[0-9]{9}'
+                    pattern: 'DTLS[0-9]+'
                     description: DTLS Product ID
               amount:
                 type: integer
