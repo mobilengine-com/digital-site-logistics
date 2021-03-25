@@ -4,7 +4,10 @@ info:
   version: V14
   description: |-
     ## Introduction
+    
     The Delivery Note API is a REST API for creating delivery notes, getting a printable QR code for a delivery note and checking the status of the created delivery note.
+
+    The Products API supports querying and creating products used in delivery notes.
 
     ## Security
     Access to the API is only allowed when the request contains an API key.
@@ -170,7 +173,7 @@ paths:
             * the shape of the JSON document doesn't match 
             * missing or invalid fields
             * using field outside of the `other` field that is not defined in the schema
-            * product ID not in the BauApp database
+            * the DTLS product ID is not found
         '401':
           description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '409':
@@ -318,7 +321,7 @@ components:
               properties:
                 name:
                   type: string
-                  example: BauApp Kft.
+                  example: ACME Kft.
                   description: Name of the company who issued the delivery note.
                 warehouse:
                   type: string
@@ -344,12 +347,12 @@ components:
                   type: string
                   description: Name of the company who is the customer of the delivery note.
                   example: HufBau Akker
-                bauAppCompanyId:
+                companyId:
                   type: string
-                  example: BA134532
-                  pattern: 'BA[0-9]{6}'
+                  example: DTLS134532
+                  pattern: 'DTLS[0-9]{6}'
                   description: |-
-                    The customer’s BA Company ID which the issuer might provide so that the customer can receive 
+                    The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
                     the issued delivery note file digitally via the BauApp system.
             - $ref: '#/components/schemas/Address'
           description: Fields related to the customer.
@@ -378,12 +381,12 @@ components:
                   type: string
                   example: Kelet-Transz Kft.
                   description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
-                haulierBauAppCompanyId:
+                haulierCompanyId:
                   type: string
-                  example: BA735372
-                  pattern: 'BA[0-9]{6}'
+                  example: DTLS735372
+                  pattern: 'DTLS[0-9]{6}'
                   description: |-
-                    The haulier’s BA Company ID which the issuer might provide so that the 
+                    The haulier’s DTLS Company ID which the issuer might provide so that the 
                     haulier can receive the received delivery note file digitally via the BauApp system.
           description: Delivery address and transport information.
         items:
@@ -398,7 +401,7 @@ components:
             properties:
               productId:
                 description: |-
-                  A product is identified either with a _(manufacturerId, SKU)_ pair, or a BauApp Product identifier.
+                  A product is identified either with a _(manufacturerId, SKU)_ pair, or a DTLS Product identifier.
 
                   These two identifier types may be freely mixed in one delivey note.
                 oneOf:
@@ -407,17 +410,17 @@ components:
                     properties:
                       manufacturerId:
                         type: string
-                        example: BA123456
-                        pattern: 'BA[0-9]{6}'
-                        description: Manufacturer company's BauApp ID
+                        example: DTLS123456
+                        pattern: 'DTLS[0-9]{6}'
+                        description: Manufacturer company's DTLS ID
                       manufacturerSku:
                         type: string
                         description: Manufacturer specific stock keeping unit (SKU) identifier of the product
                         example: 29351293
                   - type: string
-                    example: BA123456789
-                    pattern: 'BA[0-9]{9}'
-                    description: BauApp Product ID
+                    example: DTLS123456789
+                    pattern: 'DTLS[0-9]{9}'
+                    description: DTLS Product ID
               amount:
                 type: integer
                 format: int32
@@ -425,10 +428,10 @@ components:
                 description: The number of items of this product.
             example:
               - productId:
-                  manufacturerId: BA123456
+                  manufacturerId: DTLS123456
                   manufacturerSku: 29351293
                 amount: 200
-              - productId: BA123456789
+              - productId: DTLS123456789
                 amount: 50
         netWeight:
           type: string
@@ -451,7 +454,7 @@ components:
             - Date of purchase
             - Date of fulfillment
 
-            Values in this field are ignored by the BauApp system.
+            Values in this field are ignored by the BauApp/DTLS system.
       required:
         - id
         - issueDate
@@ -517,7 +520,7 @@ components:
               type: string
               format: uri
               description: |-
-                The URI for this delivery note in the BauApp system.
+                The URI for this delivery note in the DTLS system.
                 This is the URI that's encoded in the delivery note QR code.
                 It consists of a fixed base URI and the uuid of the delivery note.
               example: 'https://bauapp.hu/szallitolevel/c4db0608bac44a739ec752c48ba9b4da'
@@ -575,7 +578,7 @@ components:
               type: string
               minLength: 1
               example: TODO
-              description: The BauApp product identifier of the product.
+              description: The DTLS product identifier of the product.
         - $ref: '#/components/schemas/NewProduct'
     DeliveryNotes:
       title: DeliveryNotes
@@ -607,7 +610,7 @@ components:
       required: true
       schema:
         type: string
-      description: The BauApp product identifier for a product.
+      description: The DTLS product identifier for a product.
   responses: {}
 security:
   - BearerToken: []
