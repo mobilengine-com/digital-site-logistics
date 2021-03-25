@@ -109,8 +109,16 @@ paths:
               schema:
                 type: string
               description: A relative link to the newly created product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedProduct'
         '202':
-          description: The same product already exists.
+          description: |-
+            The same product already exists.
+
+            The DTLS server attempts to find an already existing product with the same definition. 
+            If one exists, the id of the exsiting product is returned instead of creating a new product.
           headers:
             Location:
               schema:
@@ -122,10 +130,7 @@ paths:
 
             Possible reasons include:
             * the request body is not a valid JSON document
-            * the shape of the JSON document doesn't match 
             * missing or invalid fields
-            * using field outside of the `other` field that is not defined in the schema
-            * product ID not in the BauApp database
         '401':
           description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '413':
@@ -140,9 +145,30 @@ paths:
               $ref: '#/components/schemas/NewProduct'
         description: The product to create.
         required: true
+    get:
+      summary: List products
+      operationId: listProducts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreatedProduct'
+      description: |-
+        List products that are registered for your company.
+
+        The products are listed in an undefined order.
+
+        The endpoint uses paging, so it doesn't return all products at once.
+        To get the next page of notes call the endpoint with the `from` parameter, using the ID of the last note that you received.
+      tags:
+        - Products
   '/products/{productId}':
     get:
-      summary: Get a product by its DTLS ID
+      summary: Get a product by DTLS ID
       operationId: getProduct
       tags:
         - Products
@@ -182,7 +208,6 @@ paths:
 
             Possible reasons include:
             * the request body is not a valid JSON document
-            * the shape of the JSON document doesn't match 
             * missing or invalid fields
             * using field outside of the `other` field that is not defined in the schema
             * the DTLS product ID is not found
@@ -206,7 +231,7 @@ paths:
         description: The delivery note to create.
         required: true
     get:
-      summary: Get the delivery notes stored in the system
+      summary: List delivery notes
       tags:
         - Delivery Notes
       responses:
@@ -218,6 +243,8 @@ paths:
                 $ref: '#/components/schemas/DeliveryNotes'
         '401':
           description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
+        '404':
+          description: The delivery note specified in the `from` parameter was not found.
       operationId: listDeliveryNotes
       parameters:
         - schema:
@@ -290,7 +317,7 @@ paths:
     get:
       summary: Get the delivery note receipt PDF
       description: |-
-        Download the received delivery note - a .pdf file of the delivery note with information about the delivery.
+        Download the receipt for the delivery note - a .pdf report confirming the delivery, with comments and information supplied by the recipient.
 
         Only available after the delivery note was received, see the `status` field on the delivery note.
       tags:
@@ -582,16 +609,95 @@ components:
     NewProduct:
       title: NewProduct
       type: object
-      description: Data for creating a new product.
+      description: Data for registering a new product with DTLS.
       additionalProperties: false
       properties:
         name:
           type: string
           minLength: 1
-          example: TODO
           description: The name of the product
+          example: MASTERFOL TAPE-2 20
+        manufacturer:
+          type: string
+          description: The name of the manufacturer
+          example: Masterplast
+        manufacturerId:
+          type: string
+          example: DTLS114101
+          pattern: 'DTLS[0-9+'
+          description: The manufacturer's company ID in the BauApp system
+        itemNumber:
+          type: string
+          example: 0213-04020025
+          description: The item identifier given by the manufacturer of the product
+        eanCode:
+          type: string
+          example: '5996507000009'
+          minLength: 13
+          maxLength: 13
+          pattern: '[0-9]+'
+          description: the standard 13 digits GTIN id of the product
+        taxNumber:
+          type: string
+          description: the custom tariffs identifier of the product
+          example: '68109100'
+        category:
+          type: string
+          description: the building material category to which the product belongs
+          example: masonry
+        unit:
+          type: string
+          example: roll
+          description: 'The name of the smallest undividable unit of the product. E.g. a _roll_ of electrical tape, or a _can_ of paint.'
+        packageName:
+          type: string
+          example: pack
+          description: |-
+            'If multiple `unit`s of a product may be packaged together, then the name of the package containing 
+            the units. E.g. a _case_ (package_name) of beer contains _can_s of beers (unit).
+        packageUnit:
+          type: number
+          description: Specifies how many _unit_s does this package contain
+          example: 24
+        palletName:
+          type: string
+          description: '''If multiple `unit`s of a product may be packaged together, then the name of a group of unit larger than a `package`. Usually just ''pallet''.'
+          example: pallet
+        palletUnit:
+          type: number
+          description: Specifies how many _unit_s a pallet of this product contains.
+          example: 144
+        size:
+          type: string
+          description: The size of the product
+          example: 25m
+        netWeight:
+          type: string
+          example: 2.3kg
+          description: The net weight of the product.
+        grossWeight:
+          type: string
+          example: 2.46kg
+          description: The gross weight of the product.
+        productPage:
+          type: string
+          format: uri
+          description: URL of the product's datasheet
+        performanceStatement:
+          type: string
+          format: uri
+          description: URL of the product's performance statement
+        bimObject:
+          type: string
+          format: uri
+          description: 'URL of the BIM object of the product  '
+        otherLink:
+          type: string
+          format: uri
+          description: Any other URL associated with the product
       required:
         - name
+        - unit
     CreatedProduct:
       title: Product
       description: The details of a product.
@@ -601,13 +707,28 @@ components:
             id:
               type: string
               minLength: 1
-              example: TODO
+              example: DTLS1234567890
               description: The DTLS product identifier of the product.
+            created:
+              type: string
+              format: date-time
+              description: The date when this product was first registered with the BauApp system
+            lastUpdated:
+              type: string
+              format: date-time
+              description: The date of the last change made to this product
+            status:
+              type: string
+              enum:
+                - active
+                - inactive
+              description: The status of the product. Only active products can be used while creating delivery notes.
+          required:
+            - id
+            - created
+            - lastUpdated
+            - status
         - $ref: '#/components/schemas/NewProduct'
-        - type: object
-        - type: object
-        - type: object
-        - type: object
     DeliveryNotes:
       title: DeliveryNotes
       description: A fixed size list of delivery notes. The list is ordered by newest first.
