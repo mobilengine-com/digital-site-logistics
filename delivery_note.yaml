@@ -117,13 +117,17 @@ paths:
           description: |-
             The same product already exists.
 
-            The DTLS server attempts to find an already existing product with the same definition. 
+            The server attempts to find an already existing product with the same definition. 
             If one exists, the id of the exsiting product is returned instead of creating a new product.
           headers:
             Location:
               schema:
                 type: string
               description: A relative link to the already existing product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedProduct'
         '400':
           description: |-
             Bad Request. The response body contains a human-readable description of the error.
@@ -136,8 +140,9 @@ paths:
         '413':
           description: The request is too large. The request body size for creating products is limited to 16KiB.
       description: |-
-        All the products in the delivery note must be created before creating a delivery note.
-        The delivery note with the specified id must not exist yet.
+        Register a new product with DTLS, so that it can later be referenced in delivery notes.
+
+        Modifying the properties of a product after creation is not supported for now.
       requestBody:
         content:
           application/json:
@@ -157,10 +162,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CreatedProduct'
+        '401':
+          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
+        '404':
+          description: The product specified in the `from` parameter was not found.
       description: |-
         List products that are registered for your company.
 
-        The products are listed in an undefined order.
+        The products are listed in a predefined order.
 
         The endpoint uses paging, so it doesn't return all products at once.
         To get the next page of notes call the endpoint with the `from` parameter, using the ID of the last note that you received.
@@ -400,7 +409,7 @@ components:
                   example: DTLS134532
                   pattern: 'DTLS[0-9]+'
                   description: |-
-                    The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
+                    The customer’s BauApp Company ID which the issuer might provide so that the customer can receive 
                     the issued delivery note file digitally via the BauApp system.
             - $ref: '#/components/schemas/Address'
           description: Fields related to the customer.
@@ -502,7 +511,7 @@ components:
             - Date of purchase
             - Date of fulfillment
 
-            Values in this field are ignored by the BauApp/DTLS system.
+            Values in this field are ignored by the system.
       required:
         - id
         - issueDate
@@ -624,7 +633,7 @@ components:
         manufacturerId:
           type: string
           example: DTLS114101
-          pattern: 'DTLS[0-9+'
+          pattern: 'DTLS[0-9]+'
           description: The manufacturer's company ID in the BauApp system
         itemNumber:
           type: string
