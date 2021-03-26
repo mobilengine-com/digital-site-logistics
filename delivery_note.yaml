@@ -63,6 +63,8 @@ info:
 
     To read all objects, proceed to do this in a loop until you get an empty response.
 
+    The `from` field must contain the id of an existing object, otherwise a HTTP 404 error occurs.
+
     #### Example: Reading all products
 
     1. Make a GET request to /products, let's say you receive this page (product details are omitted for the example):
@@ -92,8 +94,11 @@ info:
     #### HTTP 401 Unauthorized
     Returned if the API key is missing or invalid.
 
-    #### HTTP 404 Not found)
-    Commonly used when querying resources by an identifier, if that resource is not found.
+    #### HTTP 403 Forbidden
+    The API key used for this request is valid, but is not allowed to access this resource.
+
+    #### HTTP 404 Not found
+    Commonly used when querying resources by an identifier, if that resource is not found. 
 
     #### HTTP 413 Payload too large
     Returned when the request body is too large. 
@@ -175,8 +180,6 @@ paths:
             Possible reasons include:
             * the request body is not a valid JSON document
             * missing or invalid fields
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '413':
           description: The request is too large. The request body size for creating products is limited to 16KiB.
       description: |-
@@ -202,10 +205,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CreatedProduct'
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
-        '404':
-          description: The product specified in the `from` parameter was not found.
       description: |-
         List products that are registered for your company.
 
@@ -223,15 +222,11 @@ paths:
         - Products
       responses:
         '200':
-          description: The product was found.
+          description: OK, the body contains the product.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreatedProduct'
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
-        '404':
-          description: No product was found for the specified identifier.
       description: Get the details of an already existing product.
     parameters:
       - $ref: '#/components/parameters/productId'
@@ -260,10 +255,8 @@ paths:
             * missing or invalid fields
             * using field outside of the `other` field that is not defined in the schema
             * the DTLS product ID is not found
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '409':
-          description: 'Conflict, a delivery note with this id already exists.'
+          description: 'A delivery note with this id already exists.'
         '413':
           description: The request is too large. The request body size for creating delivery notes is limited to 256KiB.
       description: |-
@@ -290,8 +283,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeliveryNotes'
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '404':
           description: The delivery note specified in the `from` parameter was not found.
       operationId: listDeliveryNotes
@@ -321,10 +312,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreatedDeliveryNote'
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
-        '404':
-          description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
       operationId: getDeliveryNote
       description: |-
         The delivery note with the id must exist, otherwise a HTTP 404 status is returned.
@@ -351,10 +338,6 @@ paths:
               schema:
                 type: string
                 format: binary
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
-        '404':
-          description: 'The delivery note with the specified id was not found, or is not accessible with this API key.'
       operationId: getDeliveryNoteQRCode
       description: |-
         Returns an image of a QR code containing a link to the delivery note.
@@ -379,11 +362,9 @@ paths:
               schema:
                 type: string
                 format: binary
-        '401':
-          description: Authorization failed. Check if the correct API key is sent in the Authorization HTTP header.
         '404':
           description: |-
-            The delivery note with the specified id was not found, or is not accessible with this API key.
+            The delivery note with the specified id was not found. 
             Also returned if the delivery note is not in the `received` state yet.
       operationId: getDeliveryNoteReceipt
 components:
