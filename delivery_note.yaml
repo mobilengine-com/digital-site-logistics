@@ -208,10 +208,13 @@ paths:
       description: |-
         List products that are registered for your company.
 
-        The products are listed in a predefined order.
+        The products are ordered so that the first ones are the ones that are most recently made available to be queried through the API.
+        This way when polling for new products, you should only need to check the first page(s).
+        This ordering is not necessarily the same as a descending ordering by `creationDate`, because products created through the BauApp UI
+        may take longer to be visible through the API.
 
         The endpoint uses paging, so it doesn't return all products at once.
-        To get the next page of notes call the endpoint with the `from` parameter, using the ID of the last note that you received.
+        To get the next page of notes call the endpoint with the `from` parameter, using the ID of the last product that you received.
       tags:
         - Products
   '/products/{productId}':
@@ -291,9 +294,14 @@ paths:
             type: string
           in: query
           name: olderThan
-          description: A delivery note ID. The result will only contain delivery notes that were created before the specified note.
+          description: A delivery note ID. The result will only contain delivery notes starting at (but not including) this note.
       description: |-
-        Returns delivery notes in order of creation, most recent first.
+        Returns delivery notes.
+
+        The delivery notes are ordered so that the first ones are the ones that are most recently made available to be queried through the API.
+        This way when polling for new orders, you should only need to check the first page(s).
+        This ordering is not necessarily the same as a descending ordering by `creationDate`, because delivery notes created through the BauApp UI
+        may take longer to be visible through the API.
 
         The endpoint uses paging, so it doesn't return all delivery notes at once.
         To get the next page of notes call the endpoint with the `from` parameter, using the ID of the oldest (last) note that you received.
@@ -546,7 +554,8 @@ components:
       description: |-
         The current delivery status of the delivery note.
 
-        All delivery notes start with a `created` status, and change to the `received` status shortly after the delivery note QR code is scanned by the recipient.
+        All delivery notes start with a `created` status, and change to the `received` status shortly after 
+        the delivery note QR code is scanned by the recipient.
       enum:
         - created
         - received
