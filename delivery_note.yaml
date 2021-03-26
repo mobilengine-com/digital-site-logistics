@@ -52,23 +52,63 @@ info:
 
     See [http://spec.openapis.org/oas/v3.0.3#data-types](http://spec.openapis.org/oas/v3.0.3#data-types) for the specification details.
 
+    ### Paging
+
+    Some endpoints can potentially return a large number of objects, for example the `/products` endpoint.
+
+    These endpoints only return a _page_ of objects at once. To receive the next page, 
+    call the same endpoint with a `from` parameter. The from parameter should contain the last
+    identifier received in the previous endpoint request. The response for this reques will 
+    contain objects starting with (but not including) the object identified in the `from` parameter.
+
+    To read all objects, proceed to do this in a loop until you get an empty response.
+
+    #### Example: Reading all products
+
+    1. Make a GET request to /products, let's say you receive this page (product details are omitted for the example):
+    > [
+    >   { id: 'p34' },
+    >   { id: 'p67' },
+    >   { id: 'p23' }
+    > ]
+
+    2. Make a GET request with the last ID to `/products?from=p23`, receive this page:
+    > [
+    >   { id: 'p11' },
+    >   { id: 'p76' }
+    > ]
+    
+    Note that the product with ID p23 is not included in this page.
+
+    3. Make a GET request with the last ID to `/products?from=p76`, receive this page:
+    > []
+
+    4. Since the response is an empty list you're done querying all products
+    
     ### Common response codes
 
-    HTTP 401 (Unauthorized) status is returned if the API key is missing or invalid.
+    Aside from the responses documented for each endpoint, the following common repsonse codes are used.
 
-    HTTP 404 (Not found) status is commonly used when querying resources by an identifier, if that resource is not found.
+    #### HTTP 401 Unauthorized
+    Returned if the API key is missing or invalid.
 
-    HTTP 413 (Payload too large) status is returned when the request body is too large. 
+    #### HTTP 404 Not found)
+    Commonly used when querying resources by an identifier, if that resource is not found.
+
+    #### HTTP 413 Payload too large
+    Returned when the request body is too large. 
     This may happen if the created resource (product or delivery note) is unusually large.
 
-    HTTP 429 status is returned when the API rate limit is exceeded.
+    #### HTTP 429 Too many requests
+    Returned when the API rate limit is exceeded.
 
     ## API Limitations
 
     ### Data retention
-    For now, the production server keeps delivery notes indefinitely.
+    The production server keeps products and delivery notes indefinitely. 
+    This may change in future implementations of the API.
 
-    The data on the sandbox server is removed periodically.
+    The data on the sandbox server is removed on a regular basis.
 
     ### Rate limiting
     Rate limiting is based on the provided API key.
