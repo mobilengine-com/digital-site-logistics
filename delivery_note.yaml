@@ -40,6 +40,14 @@ info:
 
     Optionally you can create or synchronize products before creating a delivery note.
 
+    ## Storage of invalid requests
+
+    The server does not store the contents of invalid or incomplete requests.
+
+    The server may only store the request contents if the request was successful, e.g. an HTTP 2xx status code was returned.
+
+    This means that delivery note creation requests where the receiver DTLS company is not specified are not stored, as these create requests are not valid.
+
     ## API Conventions
 
     ### Message format
@@ -472,6 +480,7 @@ components:
                 The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
                 the issued delivery note file digitally.
                 This identifier may also be supplied as a substring of the `address` field, in that case the `companyId` must match, or be empty.
+                Required if there's no DTLS company identifier in the `address` field.
             ekaerNumber:
               type: string
               description: Identification number of the delivery from the Hungarian tax bureau (NAV).
