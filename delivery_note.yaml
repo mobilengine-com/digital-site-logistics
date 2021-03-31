@@ -402,6 +402,8 @@ components:
           description: Fields related to the issuer of the delivery note.
           type: object
           additionalProperties: false
+          required:
+            - name
           properties:
             name:
               type: string
@@ -421,12 +423,12 @@ components:
             address:
               type: string
               description: Optional address of the supplier.
-          required:
-            - name
         customer:
           description: Fields related to the customer.
           type: object
           additionalProperties: false
+          required:
+            - name
           properties:
             name:
               type: string
@@ -442,11 +444,11 @@ components:
             address:
               type: string
               description: Optional customer address.
-          required:
-            - name
         delivery:
           description: Delivery address and transport information.
           type: object
+          required:
+            - address
           properties:
             recipientName:
               type: string
@@ -456,7 +458,20 @@ components:
               example: 'Kovács Imre, +36204791543'
             address:
               type: string
-              description: The delivery addess.
+              pattern: '.*(DTLS[0-9]+)?.*'
+              description: |-
+                The delivery addess. 
+                May contain a DTLS company identifier, which identifies the receiving company.
+                If there isn't a company identifier in the address, the `companyId` field is required.
+              example: 'Bartók Béla út 42, II/4, DTLS134532'
+            companyId:
+              type: string
+              example: DTLS134532
+              pattern: 'DTLS[0-9]+'
+              description: |-
+                The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
+                the issued delivery note file digitally.
+                This identifier may also be supplied as a substring of the `address` field, in that case the `companyId` must match, or be empty.
             ekaerNumber:
               type: string
               description: Identification number of the delivery from the Hungarian tax bureau (NAV).
