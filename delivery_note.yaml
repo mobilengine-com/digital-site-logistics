@@ -210,7 +210,7 @@ paths:
 
         The products are ordered so that the first ones are the ones that are most recently made available to be queried through the API.
         This way when polling for new products, you should only need to check the first page(s).
-        This ordering is not necessarily the same as a descending ordering by `creationDate`, because products created through the BauApp UI
+        This ordering is not necessarily the same as a descending ordering by `creationDate`, because products created through the web UI
         may take longer to be visible through the API.
 
         The endpoint uses paging, so it doesn't return all products at once.
@@ -300,7 +300,7 @@ paths:
 
         The delivery notes are ordered so that the first ones are the ones that are most recently made available to be queried through the API.
         This way when polling for new orders, you should only need to check the first page(s).
-        This ordering is not necessarily the same as a descending ordering by `creationDate`, because delivery notes created through the BauApp UI
+        This ordering is not necessarily the same as a descending ordering by `creationDate`, because delivery notes created through the web UI
         may take longer to be visible through the API.
 
         The endpoint uses paging, so it doesn't return all delivery notes at once.
@@ -350,7 +350,7 @@ paths:
       description: |-
         Returns an image of a QR code containing a link to the delivery note.
 
-        You can include this image on your own documents, and the QR code can be scanned with BauApp during delivery, setting the status of the delivery note to `received`.
+        You can include this image on your own documents, and the QR code can be scanned with the mobile app during delivery, setting the status of the delivery note to `received`.
   '/delivery_notes/{deliveryNoteId}/receipt':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
@@ -438,8 +438,8 @@ components:
                   example: DTLS134532
                   pattern: 'DTLS[0-9]+'
                   description: |-
-                    The customer’s BauApp Company ID which the issuer might provide so that the customer can receive 
-                    the issued delivery note file digitally via the BauApp system.
+                    The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
+                    the issued delivery note file digitally.
             - $ref: '#/components/schemas/Address'
           description: Fields related to the customer.
         delivery:
@@ -473,7 +473,7 @@ components:
                   pattern: 'DTLS[0-9]+'
                   description: |-
                     The haulier’s DTLS Company ID which the issuer might provide so that the 
-                    haulier can receive the received delivery note file digitally via the BauApp system.
+                    haulier can receive the received delivery note file digitally.
           description: Delivery address and transport information.
         items:
           type: array
@@ -616,7 +616,7 @@ components:
               properties:
                 name:
                   type: string
-                  description: The username of the person who received the delivery note in the BauApp application
+                  description: The username of the person who received the delivery note in the mobile application
                   example: kovacs.imre
                 company:
                   type: string
@@ -664,7 +664,7 @@ components:
           type: string
           example: DTLS114101
           pattern: 'DTLS[0-9]+'
-          description: The manufacturer's company ID in the BauApp system
+          description: The manufacturer's company ID in the DTLS system
         itemNumber:
           type: string
           example: 0213-04020025
@@ -751,7 +751,7 @@ components:
             created:
               type: string
               format: date-time
-              description: The date when this product was first registered with the BauApp system
+              description: The date when this product was first registered with the DTLS system
             lastUpdated:
               type: string
               format: date-time
