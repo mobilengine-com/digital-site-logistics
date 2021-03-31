@@ -468,7 +468,7 @@ components:
               type: string
               pattern: '.*(DTLS[0-9]+)?.*'
               description: |-
-                The delivery addess. 
+                The delivery address. 
                 May contain a DTLS company identifier, which identifies the receiving company.
                 If there isn't a company identifier in the address, the `companyId` field is required.
               example: 'Bartók Béla út 42, II/4, DTLS134532'
