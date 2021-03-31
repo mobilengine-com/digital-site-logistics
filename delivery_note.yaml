@@ -399,53 +399,51 @@ components:
             The date and time when the delivery note was issued.
             The value of this field is not verified, it can be in the far past or in the future.
         supplier:
-          allOf:
-            - additionalProperties: false
-              properties:
-                name:
-                  type: string
-                  example: ACME Kft.
-                  description: Name of the company who issued the delivery note.
-                warehouse:
-                  type: string
-                  example: Révay utcai telephely
-                  description: |-
-                    The premise where the delivery note was issued.
-
-                    If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
-                taxNumber:
-                  type: string
-                  example: 52725916-2-05
-                  description: Tax number of the company who issued the delivery note.
-                address:
-                  type: string
-                  description: Optional address of the supplier.
-              required:
-                - name
           description: Fields related to the issuer of the delivery note.
           type: object
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+              example: ACME Kft.
+              description: Name of the company who issued the delivery note.
+            warehouse:
+              type: string
+              example: Révay utcai telephely
+              description: |-
+                The premise where the delivery note was issued.
+
+                If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
+            taxNumber:
+              type: string
+              example: 52725916-2-05
+              description: Tax number of the company who issued the delivery note.
+            address:
+              type: string
+              description: Optional address of the supplier.
+          required:
+            - name
         customer:
-          allOf:
-            - additionalProperties: false
-              properties:
-                name:
-                  type: string
-                  description: Name of the company who is the customer of the delivery note.
-                  example: HufBau Akker
-                companyId:
-                  type: string
-                  example: DTLS134532
-                  pattern: 'DTLS[0-9]+'
-                  description: |-
-                    The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
-                    the issued delivery note file digitally.
-                address:
-                  type: string
-                  description: Optional customer address.
-              required:
-                - name
           description: Fields related to the customer.
           type: object
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+              description: Name of the company who is the customer of the delivery note.
+              example: HufBau Akker
+            companyId:
+              type: string
+              example: DTLS134532
+              pattern: 'DTLS[0-9]+'
+              description: |-
+                The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
+                the issued delivery note file digitally.
+            address:
+              type: string
+              description: Optional customer address.
+          required:
+            - name
         delivery:
           description: Delivery address and transport information.
           type: object
