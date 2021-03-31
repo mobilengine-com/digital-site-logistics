@@ -79,14 +79,14 @@ info:
     >   { id: 'p11' },
     >   { id: 'p76' }
     > ]
-    
+
     Note that the product with ID p23 is not included in this page.
 
     3. Make a GET request with the last ID to `/products?from=p76`, receive this page:
     > []
 
     4. Since the response is an empty list you're done querying all products
-    
+
     ### Common response codes
 
     Aside from the responses documented for each endpoint, the following common repsonse codes are used.
@@ -225,7 +225,7 @@ paths:
         - Products
       responses:
         '200':
-          description: OK, the body contains the product.
+          description: 'OK, the body contains the product.'
           content:
             application/json:
               schema:
@@ -259,7 +259,7 @@ paths:
             * using field outside of the `other` field that is not defined in the schema
             * the DTLS product ID is not found
         '409':
-          description: 'A delivery note with this id already exists.'
+          description: A delivery note with this id already exists.
         '413':
           description: The request is too large. The request body size for creating delivery notes is limited to 256KiB.
       description: |-
@@ -400,10 +400,7 @@ components:
             The value of this field is not verified, it can be in the far past or in the future.
         supplier:
           allOf:
-            - type: object
-              additionalProperties: false
-              required:
-                - name
+            - additionalProperties: false
               properties:
                 name:
                   type: string
@@ -420,14 +417,16 @@ components:
                   type: string
                   example: 52725916-2-05
                   description: Tax number of the company who issued the delivery note.
-            - $ref: '#/components/schemas/Address'
-          description: Fields related to the issuer of the delivery note.
-        customer:
-          allOf:
-            - type: object
-              additionalProperties: false
+                address:
+                  type: string
+                  description: Optional address of the supplier.
               required:
                 - name
+          description: Fields related to the issuer of the delivery note.
+          type: object
+        customer:
+          allOf:
+            - additionalProperties: false
               properties:
                 name:
                   type: string
@@ -440,41 +439,35 @@ components:
                   description: |-
                     The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
                     the issued delivery note file digitally.
-            - $ref: '#/components/schemas/Address'
-          description: Fields related to the customer.
-        delivery:
-          allOf:
-            - type: object
-              additionalProperties: false
+                address:
+                  type: string
+                  description: Optional customer address.
               required:
-                - recipientName
-              properties:
-                recipientName:
-                  type: string
-                  description: |-
-                    The name - and possibly additional info - of the person who will receive the delivery 
-                    note at the delivery address.
-                  example: 'Kovács Imre, +36204791543'
-            - $ref: '#/components/schemas/Address'
-            - type: object
-              additionalProperties: false
-              properties:
-                ekaerNumber:
-                  type: string
-                  example: E2033061203BFE0
-                  description: Identification number of the delivery from the Hungarian tax bureau (NAV).
-                haulierName:
-                  type: string
-                  example: Kelet-Transz Kft.
-                  description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
-                haulierCompanyId:
-                  type: string
-                  example: DTLS735372
-                  pattern: 'DTLS[0-9]+'
-                  description: |-
-                    The haulier’s DTLS Company ID which the issuer might provide so that the 
-                    haulier can receive the received delivery note file digitally.
+                - name
+          description: Fields related to the customer.
+          type: object
+        delivery:
           description: Delivery address and transport information.
+          type: object
+          properties:
+            recipientName:
+              type: string
+              description: |-
+                The name - and possibly additional info - of the person who will receive the delivery 
+                note at the delivery address.
+              example: 'Kovács Imre, +36204791543'
+            address:
+              type: string
+              description: The delivery addess.
+            ekaerNumber:
+              type: string
+              description: Identification number of the delivery from the Hungarian tax bureau (NAV).
+            haulierName:
+              type: string
+              description: 'Name of the haulier company, who delivers the goods listed on the delivery note.'
+            haulierCompanyId:
+              type: string
+              description: The haulier’s DTLS Company ID which the issuer might provide so that the haulier can receive the received delivery note file digitally.
         products:
           type: array
           minItems: 1
@@ -495,7 +488,6 @@ components:
                 format: int32
                 minimum: 1
                 description: The number of items of this product.
-
         netWeight:
           type: string
           description: Total net weight of all products. Also includes weight units in the field.
@@ -536,27 +528,6 @@ components:
       enum:
         - created
         - received
-    Address:
-      title: Address
-      type: object
-      additionalProperties: false
-      properties:
-        country:
-          type: string
-          example: Hungary
-        city:
-          type: string
-          example: Budapest
-        zipCode:
-          type: string
-          example: '1111'
-        streetAddress:
-          type: string
-          example: 'Bartók Béla út 42, II/4'
-      required:
-        - city
-        - zipCode
-        - streetAddress
     CreatedDeliveryNote:
       title: CreatedDeliveryNote
       description: A delivery note after creation.
