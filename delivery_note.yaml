@@ -475,7 +475,7 @@ components:
                     The haulier’s DTLS Company ID which the issuer might provide so that the 
                     haulier can receive the received delivery note file digitally.
           description: Delivery address and transport information.
-        items:
+        products:
           type: array
           minItems: 1
           description: |-
@@ -486,39 +486,16 @@ components:
             additionalProperties: false
             properties:
               productId:
-                description: |-
-                  A product is identified either with a _(manufacturerId, SKU)_ pair, or a DTLS Product identifier.
-
-                  These two identifier types may be freely mixed in one delivey note.
-                oneOf:
-                  - type: object
-                    additionalProperties: false
-                    properties:
-                      manufacturerId:
-                        type: string
-                        example: DTLS123456
-                        pattern: 'DTLS[0-9]+'
-                        description: Manufacturer company's DTLS ID
-                      manufacturerSku:
-                        type: string
-                        description: Manufacturer specific stock keeping unit (SKU) identifier of the product
-                        example: '129351293'
-                  - type: string
-                    example: DTLS123456789
-                    pattern: 'DTLS[0-9]+'
-                    description: DTLS Product ID
+                type: string
+                example: DTLS123456789
+                pattern: 'DTLS[0-9]+'
+                description: DTLS Product identifier. The product must already exist in DTLS.
               amount:
                 type: integer
                 format: int32
                 minimum: 1
                 description: The number of items of this product.
-            example:
-              - productId:
-                  manufacturerId: DTLS123456
-                  manufacturerSku: 29351293
-                amount: 200
-              - productId: DTLS123456789
-                amount: 50
+
         netWeight:
           type: string
           description: Total net weight of all products. Also includes weight units in the field.
