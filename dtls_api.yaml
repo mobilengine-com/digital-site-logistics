@@ -29,16 +29,21 @@ info:
     The sandbox server accepts any API key that matches the regex `[0-9a-f]{32}`.
 
     ## Main use case
-    The main use case for the API is to
-    1. Create a delivery note, by sending a POST message to the `/delivery_notes` path.
-    2. Get the QR code for the delivery note. For this, get the QR code PNG from `/delivery_notes/{id}/qr_code`.
-    3. Use the QR code somewhere on your physical delivery note document.
-    4. Poll the delivery note path for status changes. The status field of the delivery note is updated shortly 
-      after the QR code is scanned by the recipient of the delivery. Currently there isn't any other way to be 
-      notified of status changes to the delivery note (no webhooks or updates through websockets).
-    5. Download the delivery receipt PDF from from `/delivery_notes/{id}/receipt`.
+    The main usage scenario when creating delivery notes is the following.
 
-    Optionally you can create or synchronize products before creating a delivery note.
+    1. Create products with the [products endpoints](#tag/Products). This is optional if you already have products defined in DTLS.
+
+    2. (Optional) Check if your delivery note contains a DTLS recipient. See the [Get the pattern for DTLS company Ids](#operation/get-company-dtls_id_pattern) section.
+
+    3. Create a [delivery note](#tag/Delivery-Notes).
+     
+    4. Get the QR code for the created delivery note.
+
+    5. Use the QR code somewhere on your physical delivery note document.
+
+    6. Poll the delivery note for status changes. The status field of the delivery note is updated shortly after the QR code is scanned by the recipient of the delivery.
+
+    7. Download the delivery receipt PDF.
 
     ## Storage of invalid requests
 
@@ -383,6 +388,37 @@ paths:
             The delivery note with the specified id was not found. 
             Also returned if the delivery note is not in the `received` state yet.
       operationId: getDeliveryNoteReceipt
+  /company/dtls_id_pattern:
+    get:
+      summary: Get the pattern for DTLS company Ids
+      tags:
+        - Delivery Notes
+      responses:
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '.*(DTLS[0-9]+).*'
+                description: The regular expression that you can match agains text fields to determine whether they contain a DTLS company ID.
+      operationId: get-company-dtls_id_pattern
+      description: |-
+        The DLTS API requires a DTLS company identifier in the recipient when creating a delivery note.
+        This identifier may be contained in the `address` field mixed with address information.
+
+        You can use the regular expression pattern returned by this API call to check whether the delivery note in your system contains a company identifier.
+        Only send the delivery note creation request to the DTLS API if your delivery note contains a DTLS company ID.
+        This way you avoid disclosing potentially sensitive information, and the request would  be rejected anyway.
+
+        You should check all the delivery note fields in your system that are eventually included in the `address` field of the delivery note creation request.
+        These may include fields like:
+        * address
+        * shipTo
+        * comment
+        * recipient
+        * receiving_party
 components:
   schemas:
     NewDeliveryNote:
