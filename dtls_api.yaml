@@ -45,14 +45,6 @@ info:
 
     7. Download the delivery receipt PDF.
 
-    ## Storage of invalid requests
-
-    The server does not store the contents of invalid or incomplete requests.
-
-    The server may only store the request contents if the request was successful, e.g. an HTTP 2xx status code was returned.
-
-    This means that delivery note creation requests where the receiver DTLS company is not specified are not stored, as these create requests are not valid.
-
     ## API Conventions
 
     ### Message format
