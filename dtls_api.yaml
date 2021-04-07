@@ -110,6 +110,7 @@ info:
     #### HTTP 413 Payload too large
     Returned when the request body is too large. 
     This may happen if the created resource (product or delivery note) is unusually large.
+    All requests sizes are limited to 256KiB.
 
     #### HTTP 429 Too many requests
     Returned when the API rate limit is exceeded.
@@ -188,7 +189,7 @@ paths:
             * the request body is not a valid JSON document
             * missing or invalid fields
         '413':
-          description: The request is too large. The request body size for creating products is limited to 16KiB.
+          description: The request is too large.
       description: |-
         Register a new product with DTLS, so that it can later be referenced in delivery notes.
 
@@ -208,7 +209,7 @@ paths:
             type: string
           in: query
           name: from
-          description: A product DTLS ID. The result will only contain items starting at (but not including) the speicified one.
+          description: A product DTLS ID. The result will only contain items starting at (but not including) the specified one.
       responses:
         '200':
           description: OK
@@ -294,7 +295,7 @@ paths:
             application/json:
               schema:
                 type: string
-                example: '.*(DTLS[0-9]+).*'
+                example: '.*(DTLS[0-9]{6}).*'
                 description: The regular expression that you can match agains text fields to determine whether they contain a DTLS company ID.
       operationId: get_dtls_id_pattern
       description: |-
@@ -335,6 +336,10 @@ paths:
               description: |-
                 A link to the newly created delivery note.
                 The link is `/delivery_notes/{id}` where `{id}` is the `id` field supplied in the request JSON.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedDeliveryNote'
         '400':
           description: |-
             Bad Request. The response body contains a human-readable description of the error.
@@ -347,7 +352,7 @@ paths:
         '409':
           description: A delivery note with this id already exists.
         '413':
-          description: The request is too large. The request body size for creating delivery notes is limited to 256KiB.
+          description: The request is too large.
       description: |-
         All the products in the delivery note must be created before creating a delivery note.
         The delivery note with the specified id must not exist yet.
@@ -378,9 +383,11 @@ paths:
       parameters:
         - schema:
             type: string
+            minLength: 1
+            maxLength: 40
           in: query
           name: from
-          description: A delivery note ID. The result will only contain delivery notes starting at (but not including) this note.
+          description: A delivery note ID. The result will only contain items starting at (but not including) the specified one.
       description: |-
         Returns delivery notes.
 
@@ -472,6 +479,7 @@ components:
         id:
           type: string
           minLength: 1
+          maxLength: 40
           example: K20223223SL
           description: |-
             The unique identifier for the delivery note, as 
@@ -493,10 +501,12 @@ components:
           properties:
             name:
               type: string
+              maxLength: 100
               example: ACME Kft.
               description: Name of the company who issued the delivery note.
             warehouse:
               type: string
+              maxLength: 100
               example: Révay utcai telephely
               description: |-
                 The premise where the delivery note was issued.
@@ -504,10 +514,12 @@ components:
                 If the issuer doesn’t have a warehouse or a premise it can be the same as the supplier name.
             taxNumber:
               type: string
+              maxLength: 100
               example: 52725916-2-05
               description: Tax number of the company who issued the delivery note.
             address:
               type: string
+              maxLength: 4000
               description: Optional address of the supplier.
         customer:
           description: Fields related to the customer.
@@ -518,17 +530,19 @@ components:
           properties:
             name:
               type: string
+              maxLength: 100
               description: Name of the company who is the customer of the delivery note.
               example: HufBau Akker
             companyId:
               type: string
               example: DTLS134532
-              pattern: 'DTLS[0-9]+'
+              pattern: 'DTLS[0-9]{6}'
               description: |-
                 The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
                 the issued delivery note file digitally.
             address:
               type: string
+              maxLength: 4000
               description: Optional customer address.
         delivery:
           description: Delivery address and transport information.
@@ -538,13 +552,15 @@ components:
           properties:
             recipientName:
               type: string
+              maxLength: 100
               description: |-
                 The name - and possibly additional info - of the person who will receive the delivery 
                 note at the delivery address.
               example: 'Kovács Imre, +36204791543'
             address:
               type: string
-              pattern: '.*(DTLS[0-9]+)?.*'
+              maxLength: 4000
+              pattern: '.*(DTLS[0-9]{6})?.*'
               description: |-
                 The delivery address. 
                 May contain a DTLS company identifier, which identifies the receiving company.
@@ -553,7 +569,7 @@ components:
             companyId:
               type: string
               example: DTLS134532
-              pattern: 'DTLS[0-9]+'
+              pattern: 'DTLS[0-9]{6}'
               description: |-
                 The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
                 the issued delivery note file digitally.
@@ -581,35 +597,37 @@ components:
               productId:
                 type: string
                 example: DTLS123456789
-                pattern: 'DTLS[0-9]+'
+                pattern: 'DTLS[0-9]{9}'
                 description: DTLS Product identifier. The product must already exist in DTLS.
               amount:
                 type: integer
                 format: int32
                 minimum: 1
+                maximum: 1000000000
                 description: The number of items of this product.
         netWeight:
           type: string
+          maxLength: 100
           description: Total net weight of all products. Also includes weight units in the field.
           example: 970 kg
         grossWeight:
           type: string
+          maxLength: 100
           description: Total gross weight of all products. Also includes weight units in the field.
           example: 1t
-        other:
-          type: object
-          additionalProperties:
-            type: string
-          description: |-
-            Additional key-value pairs to be stored along with this delivery note.
-            This field is meant to allow storage of miscellaneous fields your ERP system might need, such as:
-            - PO (Purchase order) number
-            - Assignment number
-            - Reference number
-            - Date of purchase
-            - Date of fulfillment
-
-            Values in this field are ignored by the system.
+        # other:
+        #   type: object
+        #   additionalProperties:
+        #     type: string
+        #   description: |-
+        #     Additional key-value pairs to be stored along with this delivery note.
+        #     This field is meant to allow storage of miscellaneous fields your ERP system might need, such as:
+        #     - PO (Purchase order) number
+        #     - Assignment number
+        #     - Reference number
+        #     - Date of purchase
+        #     - Date of fulfillment
+        #     Values in this field are ignored by the system.
       required:
         - id
         - issueDate
@@ -707,84 +725,101 @@ components:
         name:
           type: string
           minLength: 1
+          maxLength: 100
           description: The name of the product
           example: MASTERFOL TAPE-2 20
         manufacturer:
           type: string
+          maxLength: 100
           description: The name of the manufacturer
           example: Masterplast
         manufacturerId:
           type: string
           example: DTLS114101
-          pattern: 'DTLS[0-9]+'
+          pattern: 'DTLS[0-9]{6}'
           description: The manufacturer's company ID in the DTLS system
         itemNumber:
           type: string
+          maxLength: 100
           example: 0213-04020025
           description: The item identifier given by the manufacturer of the product
         eanCode:
           type: string
           example: '5996507000009'
-          minLength: 13
-          maxLength: 13
-          pattern: '[0-9]+'
+          pattern: '[0-9]{13}'
           description: the standard 13 digits GTIN id of the product
         taxNumber:
           type: string
+          maxLength: 100
           description: the custom tariffs identifier of the product
           example: '68109100'
         category:
           type: string
+          maxLength: 100
           description: the building material category to which the product belongs
           example: masonry
         unit:
           type: string
+          maxLength: 100
           example: roll
           description: 'The name of the smallest undividable unit of the product. E.g. a _roll_ of electrical tape, or a _can_ of paint.'
         packageName:
           type: string
+          maxLength: 100
           example: pack
           description: |-
             'If multiple `unit`s of a product may be packaged together, then the name of the package containing 
             the units. E.g. a _case_ (package_name) of beer contains _can_s of beers (unit).
         packageUnit:
           type: number
+          minimum: 1
+          maximum: 1000000000
           description: Specifies how many _unit_s does this package contain
           example: 24
         palletName:
           type: string
+          maxLength: 100
           description: '''If multiple `unit`s of a product may be packaged together, then the name of a group of unit larger than a `package`. Usually just ''pallet''.'
           example: pallet
         palletUnit:
           type: number
+          minimum: 1
+          maximum: 1000000000
           description: Specifies how many _unit_s a pallet of this product contains.
           example: 144
         size:
           type: string
+          maxLength: 100
           description: The size of the product
           example: 25m
         netWeight:
           type: string
+          maxLength: 100
           example: 2.3kg
           description: The net weight of the product.
         grossWeight:
           type: string
+          maxLength: 100
           example: 2.46kg
           description: The gross weight of the product.
         productPage:
           type: string
+          maxLength: 4000
           format: uri
           description: URL of the product's datasheet
         performanceStatement:
           type: string
+          maxLength: 4000
           format: uri
           description: URL of the product's performance statement
         bimObject:
           type: string
+          maxLength: 4000
           format: uri
           description: 'URL of the BIM object of the product  '
         otherLink:
           type: string
+          maxLength: 4000
           format: uri
           description: Any other URL associated with the product
       required:
@@ -844,6 +879,8 @@ components:
       required: true
       schema:
         type: string
+        minLength: 1
+        maxLength: 40
       description: 'The unique identifier of the delivery note, as supplied in the `id` field when creating the delivery note.'
     productId:
       name: productId
@@ -851,6 +888,7 @@ components:
       required: true
       schema:
         type: string
+        pattern: 'DTLS[0-9]{9}'
       description: The DTLS product identifier for a product.
   responses: {}
 security:
