@@ -33,7 +33,9 @@ info:
 
     1. Create products with the [products endpoints](#tag/Products). This is optional if you already have products defined in DTLS.
 
-    2. (Optional) Check if your delivery note contains a DTLS recipient. See the [Get the pattern for DTLS company Ids](#operation/get-company-dtls_id_pattern) section.
+    2. (Optional) Check if your delivery note contains a DTLS recipient. 
+    See the [Get the pattern for DTLS company Ids](#operation/get_dtls_id_pattern) section. 
+    Or you may want to send us the fields that may contain a DTLS company identifier to the endpoint decribed in the (Check if a text field contains a DTLS company Id)[#operation/check_dtls_id] section.
 
     3. Create a [delivery note](#tag/Delivery-Notes).
      
@@ -380,7 +382,7 @@ paths:
             The delivery note with the specified id was not found. 
             Also returned if the delivery note is not in the `received` state yet.
       operationId: getDeliveryNoteReceipt
-  /company/dtls_id_pattern:
+  /dtls_id_pattern:
     get:
       summary: Get the pattern for DTLS company Ids
       tags:
@@ -395,7 +397,7 @@ paths:
                 type: string
                 example: '.*(DTLS[0-9]+).*'
                 description: The regular expression that you can match agains text fields to determine whether they contain a DTLS company ID.
-      operationId: get-company-dtls_id_pattern
+      operationId: get_dtls_id_pattern
       description: |-
         The DLTS API requires a DTLS company identifier in the recipient when creating a delivery note.
         This identifier may be contained in the `address` field mixed with address information.
@@ -411,6 +413,40 @@ paths:
         * comment
         * recipient
         * receiving_party
+
+        The pattern is meant to be case sensitive.
+    parameters: []
+  /check_dtls_id:
+    parameters: []
+    post:
+      summary: Check if a text field contains a DTLS company Id
+      operationId: check_dtls_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: boolean
+                description: 'True if the supplied text contains a DTLS company Id, false otherwise.'
+      description: |-
+        Checks whether the posted data field contains a DTLS company identifier.
+
+        You would typically use this to send us a field in your delivery note that might contain a DTLS company identifier, such as the address/shipTo field.
+        This endpoint returns whether the field contains a company identifier or not.
+
+        If your address field doesn't contain a company identifier, you probably don't want to send the delivery note to DTLS.
+
+        The endpoint doesn't validate whether the company identifier belongs to an existing company or not, it only checks for the correct company id format.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              description: The text to search for DTLS company Ids.
+              example: '1034 Budapest, Nyírfa utca 33, DTLS123456'
+      tags:
+        - Delivery Notes
 components:
   schemas:
     NewDeliveryNote:
