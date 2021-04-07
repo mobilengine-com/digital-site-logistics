@@ -35,7 +35,7 @@ info:
 
     2. (Optional) Check if your delivery note contains a DTLS recipient. 
     See the [Get the pattern for DTLS company Ids](#operation/get_dtls_id_pattern) section. 
-    Or you may want to send us the fields that may contain a DTLS company identifier to the endpoint decribed in the (Check if a text field contains a DTLS company Id)[#operation/check_dtls_id] section.
+    Or you may want to send us the fields that may contain a DTLS company identifier to the endpoint decribed in the [Check if a text field contains a DTLS company Id](#operation/check_dtls_id) section.
 
     3. Create a [delivery note](#tag/Delivery-Notes).
      
