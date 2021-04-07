@@ -685,9 +685,14 @@ components:
                 - name
                 - company
                 - date
-            createdDate:
+            created:
               type: string
-              description: The date and time when this delivery note was created in
+              format: date-time
+              description: The date and time when this delivery note was created.
+            lastUpdated:
+              type: string
+              format: date-time
+              description: The date and time when this delivery note was last updated, most likely for a status change.
           required:
             - status
             - uuid
