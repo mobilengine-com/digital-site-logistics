@@ -203,6 +203,12 @@ paths:
     get:
       summary: List products
       operationId: listProducts
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: from
+          description: A product DTLS ID. The result will only contain items starting at (but not including) the speicified one.
       responses:
         '200':
           description: OK
@@ -373,7 +379,7 @@ paths:
         - schema:
             type: string
           in: query
-          name: olderThan
+          name: from
           description: A delivery note ID. The result will only contain delivery notes starting at (but not including) this note.
       description: |-
         Returns delivery notes.
