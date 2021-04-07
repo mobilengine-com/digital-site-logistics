@@ -35,7 +35,7 @@ info:
 
     2. (Optional) Check if your delivery note contains a DTLS recipient. 
     See the [Get the pattern for DTLS company Ids](#operation/get_dtls_id_pattern) section. 
-    Or you may want to send us the fields that may contain a DTLS company identifier to the endpoint decribed in the [Check if a text field contains a DTLS company Id](#operation/check_dtls_id) section.
+    Or you can check whether your fields contain a DTLS company identifier with the [Check if a text field contains a DTLS company Id](#operation/check_dtls_id) endpoint.
 
     3. Create a [delivery note](#tag/Delivery-Notes).
      
@@ -142,10 +142,10 @@ servers:
   - url: 'https://to_be_determined.example.net/v1'
     description: Production environment
 tags:
-  - name: Delivery Notes
-    description: API calls handling Delivery Notes
   - name: Products
     description: API calls handling Products
+  - name: Delivery Notes
+    description: API calls handling Delivery Notes
 paths:
   /products:
     post:
@@ -240,6 +240,79 @@ paths:
       description: Get the details of an already existing product.
     parameters:
       - $ref: '#/components/parameters/productId'
+  /check_dtls_id:
+    parameters: []
+    post:
+      summary: Check if a text field contains a DTLS company Id
+      operationId: check_dtls_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: boolean
+                description: 'True if the supplied text contains a DTLS company Id, false otherwise.'
+      description: |-
+        > Before starting the process, the suppliers have two options to check if they should get a QR code for their delivery note: 
+        > 1. only send the delivery address so the DTLS system can check if it contains the DTLS Company ID or
+        > 2. get the format of the DTLS Company ID so the supplier's ERP system can check if it contains the DTLS Company ID
+
+        Checks whether the posted data field contains a DTLS company identifier.
+
+        You would typically use this to send us a field in your delivery note that might contain a DTLS company identifier, such as the address/shipTo field.
+        This endpoint returns whether the field contains a company identifier or not.
+
+        If your address field doesn't contain a company identifier, you probably don't want to send the delivery note to DTLS.
+
+        The endpoint doesn't validate whether the company identifier belongs to an existing company or not, it only checks for the correct company id format.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              description: The text to search for DTLS company Ids.
+              example: '1034 Budapest, Nyírfa utca 33, DTLS123456'
+      tags:
+        - Delivery Notes
+  /dtls_id_pattern:
+    get:
+      summary: Get the pattern for DTLS company Ids
+      tags:
+        - Delivery Notes
+      responses:
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '.*(DTLS[0-9]+).*'
+                description: The regular expression that you can match agains text fields to determine whether they contain a DTLS company ID.
+      operationId: get_dtls_id_pattern
+      description: |-
+        > Before starting the process, the suppliers have two options to check if they should get a QR code for their delivery note: 
+        > 1. only send the delivery address so the DTLS system can check if it contains the DTLS Company ID or
+        > 2. get the format of the DTLS Company ID so the supplier's ERP system can check if it contains the DTLS Company ID
+        
+        The DLTS API requires a DTLS company identifier in the recipient when creating a delivery note.
+        This identifier may be contained in the `address` field mixed with address information.
+
+        You can use the regular expression pattern returned by this API call to check whether the delivery note in your system contains a company identifier.
+        Only send the delivery note creation request to the DTLS API if your delivery note contains a DTLS company ID.
+        This way you avoid disclosing potentially sensitive information, and the request would  be rejected anyway.
+
+        You should check all the delivery note fields in your system that are eventually included in the `address` field of the delivery note creation request.
+        These may include fields like:
+        * address
+        * shipTo
+        * comment
+        * recipient
+        * receiving_party
+
+        The pattern is meant to be case sensitive.
+    parameters: []
   /delivery_notes:
     post:
       summary: Create a new delivery note
@@ -313,26 +386,6 @@ paths:
         The endpoint uses paging, so it doesn't return all delivery notes at once.
         To get the next page of notes call the endpoint with the `from` parameter, using the ID of the oldest (last) note that you received.
     parameters: []
-  '/delivery_notes/{deliveryNoteId}':
-    parameters:
-      - $ref: '#/components/parameters/deliveryNoteId'
-    get:
-      summary: Get an existing delivery note
-      tags:
-        - Delivery Notes
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreatedDeliveryNote'
-      operationId: getDeliveryNote
-      description: |-
-        The delivery note with the id must exist, otherwise a HTTP 404 status is returned.
-
-        The delivery note contains a few extra fields along with the ones supplied during its creation.
-        See the `CreatedDelvieryNote` model definition for details.
   '/delivery_notes/{deliveryNoteId}/qr_code':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
@@ -358,6 +411,26 @@ paths:
         Returns an image of a QR code containing a link to the delivery note.
 
         You can include this image on your own documents, and the QR code can be scanned with the mobile app during delivery, setting the status of the delivery note to `received`.
+  '/delivery_notes/{deliveryNoteId}':
+    parameters:
+      - $ref: '#/components/parameters/deliveryNoteId'
+    get:
+      summary: Get an existing delivery note
+      tags:
+        - Delivery Notes
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedDeliveryNote'
+      operationId: getDeliveryNote
+      description: |-
+        The delivery note with the id must exist, otherwise a HTTP 404 status is returned.
+
+        The delivery note contains a few extra fields along with the ones supplied during its creation.
+        See the `CreatedDelvieryNote` model definition for details.
   '/delivery_notes/{deliveryNoteId}/receipt':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
@@ -382,71 +455,6 @@ paths:
             The delivery note with the specified id was not found. 
             Also returned if the delivery note is not in the `received` state yet.
       operationId: getDeliveryNoteReceipt
-  /dtls_id_pattern:
-    get:
-      summary: Get the pattern for DTLS company Ids
-      tags:
-        - Delivery Notes
-      responses:
-        '200':
-          description: OK
-          headers: {}
-          content:
-            application/json:
-              schema:
-                type: string
-                example: '.*(DTLS[0-9]+).*'
-                description: The regular expression that you can match agains text fields to determine whether they contain a DTLS company ID.
-      operationId: get_dtls_id_pattern
-      description: |-
-        The DLTS API requires a DTLS company identifier in the recipient when creating a delivery note.
-        This identifier may be contained in the `address` field mixed with address information.
-
-        You can use the regular expression pattern returned by this API call to check whether the delivery note in your system contains a company identifier.
-        Only send the delivery note creation request to the DTLS API if your delivery note contains a DTLS company ID.
-        This way you avoid disclosing potentially sensitive information, and the request would  be rejected anyway.
-
-        You should check all the delivery note fields in your system that are eventually included in the `address` field of the delivery note creation request.
-        These may include fields like:
-        * address
-        * shipTo
-        * comment
-        * recipient
-        * receiving_party
-
-        The pattern is meant to be case sensitive.
-    parameters: []
-  /check_dtls_id:
-    parameters: []
-    post:
-      summary: Check if a text field contains a DTLS company Id
-      operationId: check_dtls_id
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: boolean
-                description: 'True if the supplied text contains a DTLS company Id, false otherwise.'
-      description: |-
-        Checks whether the posted data field contains a DTLS company identifier.
-
-        You would typically use this to send us a field in your delivery note that might contain a DTLS company identifier, such as the address/shipTo field.
-        This endpoint returns whether the field contains a company identifier or not.
-
-        If your address field doesn't contain a company identifier, you probably don't want to send the delivery note to DTLS.
-
-        The endpoint doesn't validate whether the company identifier belongs to an existing company or not, it only checks for the correct company id format.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-              description: The text to search for DTLS company Ids.
-              example: '1034 Budapest, Nyírfa utca 33, DTLS123456'
-      tags:
-        - Delivery Notes
 components:
   schemas:
     NewDeliveryNote:
