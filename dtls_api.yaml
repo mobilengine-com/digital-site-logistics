@@ -303,8 +303,7 @@ paths:
         > 1. only send the delivery address so the DTLS system can check if it contains the DTLS Company ID or
         > 2. get the format of the DTLS Company ID so the supplier's ERP system can check if it contains the DTLS Company ID
 
-        The DLTS API requires a DTLS company identifier in the recipient when creating a delivery note.
-        This identifier may be contained in the `address` field mixed with address information.
+        The DLTS API requires a DTLS company identifier in the recipient's address when creating a delivery note.
 
         You can use the regular expression pattern returned by this API call to check whether the delivery note in your system contains a company identifier.
         Only send the delivery note creation request to the DTLS API if your delivery note contains a DTLS company ID.
@@ -533,13 +532,6 @@ components:
               maxLength: 100
               description: Name of the company who is the customer of the delivery note.
               example: HufBau Akker
-            companyId:
-              type: string
-              example: DTLS134532
-              pattern: 'DTLS[0-9]{6}'
-              description: |-
-                The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
-                the issued delivery note file digitally.
             address:
               type: string
               maxLength: 4000
@@ -563,18 +555,8 @@ components:
               pattern: '.*(DTLS[0-9]{6})?.*'
               description: |-
                 The delivery address. 
-                May contain a DTLS company identifier, which identifies the receiving company.
-                If there isn't a company identifier in the address, the `companyId` field is required.
+                Must contain a DTLS company identifier, which identifies the receiving company.
               example: 'Bartók Béla út 42, II/4, DTLS134532'
-            companyId:
-              type: string
-              example: DTLS134532
-              pattern: 'DTLS[0-9]{6}'
-              description: |-
-                The customer’s DTLS Company ID which the issuer might provide so that the customer can receive 
-                the issued delivery note file digitally.
-                This identifier may also be supplied as a substring of the `address` field, in that case the `companyId` must match, or be empty.
-                Required if there's no DTLS company identifier in the `address` field.
             ekaerNumber:
               type: string
               description: Identification number of the delivery from the Hungarian tax bureau (NAV).
