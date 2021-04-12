@@ -302,7 +302,7 @@ paths:
         > Before starting the process, the suppliers have two options to check if they should get a QR code for their delivery note: 
         > 1. only send the delivery address so the DTLS system can check if it contains the DTLS Company ID or
         > 2. get the format of the DTLS Company ID so the supplier's ERP system can check if it contains the DTLS Company ID
-        
+
         The DLTS API requires a DTLS company identifier in the recipient when creating a delivery note.
         This identifier may be contained in the `address` field mixed with address information.
 
@@ -600,11 +600,12 @@ components:
                 pattern: 'DTLS[0-9]{9}'
                 description: DTLS Product identifier. The product must already exist in DTLS.
               amount:
-                type: integer
-                format: int32
-                minimum: 1
-                maximum: 1000000000
+                type: number
+                format: double
                 description: The number of items of this product.
+                exclusiveMinimum: true
+                minimum: 0
+                maximum: 1000000000
         netWeight:
           type: string
           maxLength: 100
@@ -615,19 +616,6 @@ components:
           maxLength: 100
           description: Total gross weight of all products. Also includes weight units in the field.
           example: 1t
-        # other:
-        #   type: object
-        #   additionalProperties:
-        #     type: string
-        #   description: |-
-        #     Additional key-value pairs to be stored along with this delivery note.
-        #     This field is meant to allow storage of miscellaneous fields your ERP system might need, such as:
-        #     - PO (Purchase order) number
-        #     - Assignment number
-        #     - Reference number
-        #     - Date of purchase
-        #     - Date of fulfillment
-        #     Values in this field are ignored by the system.
       required:
         - id
         - issueDate
@@ -710,7 +698,7 @@ components:
             lastUpdated:
               type: string
               format: date-time
-              description: The date and time when this delivery note was last updated, most likely for a status change.
+              description: 'The date and time when this delivery note was last updated, most likely for a status change.'
           required:
             - status
             - uuid
