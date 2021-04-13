@@ -810,6 +810,9 @@ components:
           description: Any other URL associated with the product
       required:
         - name
+        - manufacturer
+        - manufacturerId
+        - itemNumber
         - unit
     CreatedProduct:
       title: Product
