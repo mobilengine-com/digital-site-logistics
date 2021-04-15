@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Digital Site Logistics Standard - Technical Guide
+  title: Digital Terrain Logistics Standard - Technical Guide
   version: V15
   description: |-
     ## Introduction
@@ -410,8 +410,7 @@ paths:
           description: |-
             The QR code in PNG format.
 
-            The size of the image is undefined, but has a sufficiently large resolution for printing.
-
+            The exact size of the image is undefined.
             The QR code contains the same URI that is in the `uri` field of the delivery note.
           content:
             image/png:
@@ -422,7 +421,10 @@ paths:
       description: |-
         Returns an image of a QR code containing a link to the delivery note.
 
-        You can include this image on your own documents, and the QR code can be scanned with the mobile app during delivery, setting the status of the delivery note to `received`.
+        You can include this image on your own documents, and the QR code can be scanned with the mobile app during delivery.
+
+        **Try to print the QR code as large as you can. This will make scanning easier and will also protect against damage and staining.**
+        **We recommend at least 3cm by 3cm.**
   '/delivery_notes/{deliveryNoteId}':
     parameters:
       - $ref: '#/components/parameters/deliveryNoteId'
