@@ -810,7 +810,7 @@ components:
           type: string
           maxLength: 4000
           format: uri
-          description: 'URL of the BIM object of the product  '
+          description: URL of the BIM object of the product
         otherLink:
           type: string
           maxLength: 4000
@@ -818,9 +818,6 @@ components:
           description: Any other URL associated with the product
       required:
         - name
-        - manufacturer
-        - manufacturerId
-        - itemNumber
         - unit
     CreatedProduct:
       title: Product
