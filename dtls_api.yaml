@@ -26,7 +26,11 @@ info:
     ### Getting an API key
     Administering API keys is done via the BauApp web interface.
 
-    The sandbox server accepts any API key that matches the regex `[0-9a-f]{32}`.
+    The sandbox server accepts any API key that matches the regex `DTLS[0-9]{6}.*`.
+
+    When using this api key, the beginning of the API key will identify the company that you're authenticated as.
+
+    __Do not store live data on the sandbox server.__
 
     ## Main use case
     The main usage scenario when creating delivery notes is the following.
@@ -587,7 +591,7 @@ components:
               productId:
                 type: string
                 example: DTLS123456789
-                pattern: 'DTLS[0-9]{9}'
+                pattern: 'DTLS[0-9]{9,}'
                 description: DTLS Product identifier. The product must already exist in DTLS.
               amount:
                 type: number
@@ -734,7 +738,7 @@ components:
           example: DTLS114101
           pattern: 'DTLS[0-9]{6}'
           description: The manufacturer's company ID in the DTLS system
-        itemNumber:
+        manufacturerItemNumber:
           type: string
           maxLength: 100
           example: 0213-04020025
@@ -827,7 +831,7 @@ components:
           properties:
             id:
               type: string
-              minLength: 1
+              pattern: 'DTLS[0-9]{9,}'
               example: DTLS1234567890
               description: The DTLS product identifier of the product.
             created:
@@ -882,7 +886,7 @@ components:
       required: true
       schema:
         type: string
-        pattern: 'DTLS[0-9]{9}'
+        pattern: 'DTLS[0-9]{9,}'
       description: The DTLS product identifier for a product.
   responses: {}
 security:
