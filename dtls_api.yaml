@@ -503,6 +503,7 @@ components:
           additionalProperties: false
           required:
             - name
+            - warehouse
           properties:
             name:
               type: string
