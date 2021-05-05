@@ -142,9 +142,9 @@ info:
     url: 'https://bauapp.hu/api'
     email: hello@bauapp.com
 servers:
-  - url: 'https://sandbox.to_be_determined.example.net/v1'
+  - url: 'https://sandbox.to_be_determined.example.net/api/v15'
     description: 'Sandbox environment, for testing API clients.'
-  - url: 'https://to_be_determined.example.net/v1'
+  - url: 'https://to_be_determined.example.net/api/v15'
     description: Production environment
 tags:
   - name: Products
