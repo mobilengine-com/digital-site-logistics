@@ -579,7 +579,7 @@ components:
             haulierComment:
               type: string
               maxLength: 100
-        products:
+        items:
           type: array
           minItems: 1
           description: |-
@@ -694,7 +694,7 @@ components:
                   format: datetime
                   example: '2021-01-25T11:29:22Z'
                   description: The exact date when the delivery note was received.
-                notes:
+                comment:
                   type: string
                   description: |-
                     Contains qualitative and quantitative notes that were recorded 
