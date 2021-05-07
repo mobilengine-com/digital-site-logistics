@@ -475,10 +475,10 @@ paths:
       operationId: getDeliveryNoteReceipt
 components:
   schemas:
-    NewDeliveryNote:
-      title: NewDeliveryNote
+    DeliveryNoteCommon:
+      title: DeliveryNoteCommon
       type: object
-      description: Data for creating a delivery note.
+      description: ''
       additionalProperties: false
       properties:
         id:
@@ -579,31 +579,6 @@ components:
             haulierComment:
               type: string
               maxLength: 100
-        items:
-          type: array
-          minItems: 1
-          description: |-
-            The products and their quantities which are listed on the delivery note.
-            At least one item is required.
-          items:
-            type: object
-            additionalProperties: false
-            properties:
-              productId:
-                type: string
-                example: DTLS123456789
-                pattern: 'DTLS[0-9]{9,}'
-                description: DTLS Product identifier. The product must already exist in DTLS.
-              amount:
-                type: number
-                format: double
-                description: The number of items of this product.
-                exclusiveMinimum: true
-                minimum: 0
-                maximum: 1000000000
-              comment:
-                type: string
-                maxLength: 100
         netWeight:
           type: string
           maxLength: 100
@@ -701,8 +676,6 @@ components:
                     upon receiving the delivery note.
                   example: Clay block - 8 instead of 10 packages
               required:
-                - name
-                - company
                 - date
             created:
               type: string
@@ -712,11 +685,15 @@ components:
               type: string
               format: date-time
               description: 'The date and time when this delivery note was last updated, most likely for a status change.'
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreatedDeliveryNoteItem'
           required:
             - status
             - uuid
             - uri
-        - $ref: '#/components/schemas/NewDeliveryNote'
+        - $ref: '#/components/schemas/DeliveryNoteCommon'
     NewProduct:
       title: NewProduct
       type: object
@@ -861,6 +838,64 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/CreatedDeliveryNote'
+    NewDeliveryNoteItem:
+      title: NewItem
+      type: object
+      additionalProperties: false
+      properties:
+        productId:
+          type: string
+          example: DTLS123456789
+          pattern: 'DTLS[0-9]{9,}'
+          description: DTLS Product identifier. The product must already exist in DTLS.
+        amount:
+          type: number
+          format: double
+          description: The number of items of this product.
+          exclusiveMinimum: true
+          minimum: 0
+          maximum: 1000000000
+        comment:
+          type: string
+          maxLength: 100
+      description: An item in the delivery note at creation.
+    NewDeliveryNote:
+      title: NewDeliveryNote
+      allOf:
+        - type: object
+          properties:
+            items:
+              type: array
+              minItems: 1
+              description: |-
+                The products and their quantities which are listed on the delivery note.
+                At least one item is required.
+              items:
+                $ref: '#/components/schemas/NewDeliveryNoteItem'
+        - $ref: '#/components/schemas/DeliveryNoteCommon'
+      description: Data for creating a delivery note.
+    CreatedDeliveryNoteItem:
+      allOf:
+        - type: object
+          properties:
+            modifiedAmount:
+              type: number
+              description: The amount of this product actually received. Only available after reception.
+            modifierComment:
+              type: string
+              description: Comment about the reception of this item. Only available after reception.
+            modifierUser:
+              type: string
+              description: The author of the received amount and the comment about the reception. Only available after reception.
+            updateDate:
+              type: string
+              format: date-time
+              description: The time when the information about the reception was created. Only available after reception.
+        - $ref: '#/components/schemas/NewDeliveryNoteItem'
+      description: |-
+        An item of the delivery note after creation.
+
+        Contains fields that carry information about the reception of this item.
   securitySchemes:
     BearerToken:
       type: http
