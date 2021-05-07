@@ -2,8 +2,7 @@
   "name": "digital_site_logistics_apis",
   "description": "",
   "scripts": {
-    "redoc": "redoc-cli bundle dtls_api.yaml --options.expandResponses=0 --options.pathInMiddlePanel=true --options.disableSearch=true --options.nativeScrollbars=true --options.jsonSampleExpandLevel=1 --options.hideDownloadButton=true --expandSingleSchemaField=true && mv redoc-static.html docs/index.html",
-    "watch": "npm-watch"
+    "redoc": "redoc-cli bundle swagger.json --options.expandResponses=0 --options.pathInMiddlePanel=true --options.disableSearch=true --options.nativeScrollbars=true --options.jsonSampleExpandLevel=1 --options.hideDownloadButton=true --expandSingleSchemaField=true && mv redoc-static.html docs/index.html"
   },
   "watch": {
     "redoc": {
