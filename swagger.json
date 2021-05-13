@@ -1,4 +1,4 @@
-{
+﻿{
   "openapi": "3.0.1",
   "info": {
     "title": "Digital Terrain Logistics Standard - Technical Guide",
@@ -27,7 +27,7 @@
           "Delivery Notes"
         ],
         "summary": "Create a new delivery note",
-        "description": "All the products in the delivery note must be created before creating a delivery note.The delivery note with the specified id must not exist yet.\nThe API doesn't allow updating delivery notes after creation.You should just create a new note if a created note contains an error.",
+        "description": "All the products in the delivery note must be created before creating a delivery note.The delivery note with the specified id must not exist yet.\n\nThe API doesn't allow updating delivery notes after creation.You should just create a new note if a created note contains an error.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -95,10 +95,10 @@
           "Delivery Notes"
         ],
         "summary": "List delivery notes",
-        "description": "Returns delivery notes.\nThe delivery notes are ordered so that the first ones are the ones that are most recently made available to be queried through the API.This way when polling for new orders, you should only need to check the first page(s).This ordering is not necessarily the same as a descending ordering by `creationDate`, because delivery notes created through the web UI may take longer to be visible through the API.\nThe endpoint uses paging, so it doesn't return all delivery notes at once.\nTo get the next page of notes call the endpoint with the `from` parameter, using the ID of the oldest (last) note that you received.",
+        "description": "Returns delivery notes.\nThe delivery notes are ordered so that the first ones are the ones that are most recently made available to be queried through the API.This way when polling for new orders, you should only need to check the first page(s).This ordering is not necessarily the same as a descending ordering by `creationDate`, because delivery notes created through the web UI may take longer to be visible through the API.\n\nThe endpoint uses paging, so it doesn't return all delivery notes at once.\n\nTo get the next page of notes call the endpoint with the `from` parameter, using the ID of the oldest (last) note that you received.",
         "parameters": [
           {
-            "name": "from",
+            "name": "fromUuid",
             "in": "query",
             "description": "The result will only contain items starting at (but not including) this one.",
             "schema": {
@@ -133,17 +133,62 @@
         }
       }
     },
-    "/api/v15/delivery_notes/{id}": {
+    "/api/v15/delivery_notes/search": {
       "get": {
         "tags": [
           "Delivery Notes"
         ],
-        "summary": "Get an existing delivery note",
+        "summary": "Search delivery notes",
+        "description": "Currently the search only supports finding delivery notes by the `supplierId`\n\nThe response contains all matches, no paging is used.\n\nIn rare cases there may be more than one delivery notes with the same supplierId.\n\nFor example when you're a haulier company and you have access to many companies delivery notes, and two happen to share the same supplierId.",
         "parameters": [
           {
-            "name": "id",
+            "name": "supplierId",
+            "in": "query",
+            "description": "The supplier's identifier of the delivery note, as supplied in the `supplierId` field when creating the delivery note.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested delivery note",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiDeliveryNote"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No delivery note was found with the specified supplierId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v15/delivery_notes/{uuid}": {
+      "get": {
+        "tags": [
+          "Delivery Notes"
+        ],
+        "summary": "Get a delivery note by UUID",
+        "parameters": [
+          {
+            "name": "uuid",
             "in": "path",
-            "description": "The unique identifier of the delivery note, as supplied in the `id` field when creating the delivery note.",
+            "description": "The UUID of the delivery note.",
             "required": true,
             "schema": {
               "type": "string"
@@ -162,7 +207,7 @@
             }
           },
           "404": {
-            "description": "No delivery note was found with the specified id",
+            "description": "No delivery note was found with the specified uuid",
             "content": {
               "application/json": {
                 "schema": {
@@ -174,16 +219,16 @@
         }
       }
     },
-    "/api/v15/delivery_notes/{id}/qr_code": {
+    "/api/v15/delivery_notes/{uuid}/qr_code": {
       "get": {
         "tags": [
           "Delivery Notes"
         ],
-        "summary": "Get the QR code for the delivery note",
-        "description": "Returns an image of a QR code containing a link to the delivery note.\nYou can include this image on your own documents, and the QR code can be scanned with the mobile app during delivery.\n**Try to print the QR code as large as you can. This will make scanning easier and will also protect against damage and staining.****We recommend at least 3cm by 3cm.**",
+        "summary": "Get the QR code for a delivery note",
+        "description": "Returns an image of a QR code containing a link to the delivery note.\n\nYou can include this image on your own documents, and the QR code can be scanned with the mobile app during delivery.\n\n**Try to print the QR code as large as you can. This will make scanning easier and will also protect against damage and staining.**\n**We recommend at least 3cm by 3cm.**",
         "parameters": [
           {
-            "name": "id",
+            "name": "uuid",
             "in": "path",
             "required": true,
             "schema": {
@@ -193,7 +238,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The QR code in PNG format.\nThe exact size of the image is undefined.\nThe QR code contains the same URI that is in the `uri` field of the delivery note."
+            "description": "The QR code in PNG format.\n\nThe exact size of the image is undefined.\n\nThe QR code contains the same URI that is in the `uri` field of the delivery note."
           },
           "404": {
             "description": "The delivery note with the speified id was not found",
@@ -208,16 +253,16 @@
         }
       }
     },
-    "/api/v15/delivery_notes/{id}/receipt": {
+    "/api/v15/delivery_notes/{uuid}/receipt": {
       "get": {
         "tags": [
           "Delivery Notes"
         ],
-        "summary": "Get the delivery note receipt PDF",
-        "description": "Download the receipt for the delivery note - a .pdf report confirming the delivery, with comments and information supplied by the recipient.\nOnly available after the delivery note was received, see the `status` field on the delivery note.",
+        "summary": "Get the receipt PDF for a delivery note",
+        "description": "Download the receipt for the delivery note - a .pdf report confirming the delivery, with comments and information supplied by the recipient.\n\nOnly available after the delivery note was received, see the `status` field on the delivery note.",
         "parameters": [
           {
-            "name": "id",
+            "name": "uuid",
             "in": "path",
             "required": true,
             "schema": {
@@ -440,6 +485,7 @@
           "Products"
         ],
         "summary": "Get a product by DTLS ID",
+        "description": "Returns a single product with the specified DTLS product identifier",
         "parameters": [
           {
             "name": "id",
@@ -493,12 +539,12 @@
           "created",
           "customer",
           "delivery",
-          "id",
           "issueDate",
           "items",
           "lastUpdated",
           "status",
           "supplier",
+          "supplierId",
           "uuid"
         ],
         "type": "object",
@@ -506,12 +552,12 @@
           "uuid": {
             "minLength": 1,
             "type": "string",
-            "description": "A globally unique identifier for the delivery note.\r\nThis field is automatically generated on creation.\r\nThe UUID is in lowercase, and in the short format without hyphen characters.",
+            "description": "A globally unique identifier for the delivery note.\r\nThis field is automatically generated on creation.\r\nThe identifier is in lowercase, and in the short format without hyphen characters.",
             "example": "c4db0608bac44a739ec752c48ba9b4da"
           },
-          "uri": {
+          "qrCodeContent": {
             "type": "string",
-            "description": "The URI for this delivery note in the DTLS system.\r\nThis is the URI that's encoded in the delivery note QR code.\r\nIt consists of a fixed base URI and the uuid of the delivery note.",
+            "description": "This is the URI that's encoded in the delivery note's QR code.\r\nThe URI is used to identify the delivery note during the reception process.",
             "format": "uri",
             "nullable": true
           },
@@ -541,11 +587,11 @@
             },
             "description": "The products and their quantities which are listed on the delivery note.\r\nAfter reception it can optionally contain fields describing the products actually received, in the `modified...` fields"
           },
-          "id": {
+          "supplierId": {
             "maxLength": 40,
             "minLength": 1,
             "type": "string",
-            "description": "The unique identifier for the delivery note, as represented in your companies ERP system.\r\nThe format of the note is not fixed, any identifier format can be used.\r\nThe identifier doesn't need to be globally unique, it's enough that it's unique for the current user (the one identified by the API key).",
+            "description": "The unique identifier for the delivery note, as represented in the supplier's ERP system.\r\nThe format of the note is not fixed, any identifier format can be used.\r\nThe identifier doesn't need to be globally unique, it's enough that it's unique for the current user (the one identified by the API key).",
             "example": "K20223223SL"
           },
           "issueDate": {
@@ -604,10 +650,10 @@
         "required": [
           "customer",
           "delivery",
-          "id",
           "issueDate",
           "items",
-          "supplier"
+          "supplier",
+          "supplierId"
         ],
         "type": "object",
         "properties": {
@@ -619,11 +665,11 @@
             },
             "description": "The products and their quantities which are listed on the delivery note.\r\nAt least one item is required."
           },
-          "id": {
+          "supplierId": {
             "maxLength": 40,
             "minLength": 1,
             "type": "string",
-            "description": "The unique identifier for the delivery note, as represented in your companies ERP system.\r\nThe format of the note is not fixed, any identifier format can be used.\r\nThe identifier doesn't need to be globally unique, it's enough that it's unique for the current user (the one identified by the API key).",
+            "description": "The unique identifier for the delivery note, as represented in the supplier's ERP system.\r\nThe format of the note is not fixed, any identifier format can be used.\r\nThe identifier doesn't need to be globally unique, it's enough that it's unique for the current user (the one identified by the API key).",
             "example": "K20223223SL"
           },
           "issueDate": {
@@ -696,7 +742,7 @@
             "maxLength": 255,
             "minLength": 1,
             "type": "string",
-            "description": "The name of the smallest undividable unit of the product. E.g. a roll of electrical tape, or a can of paint.",
+            "description": "The name of the smallest undividable unit of the product.\r\nThis cannot be changed after a product is added to the DTLS database and on\r\nall delivery notes in the system the products can be listed only in this unit.\r\nE.g. a roll of electrical tape, or a can of paint.",
             "example": "roll"
           },
           "manufacturer": {
@@ -839,7 +885,7 @@
           },
           "unit": {
             "type": "string",
-            "description": "The name of the smallest undividable unit of the product. E.g. a roll of electrical tape, or a can of paint.",
+            "description": "The name of the smallest undividable unit of the product.\r\nThis cannot be changed after a product is added to the DTLS database and on\r\nall delivery notes in the system the products can be listed only in this unit.\r\nE.g. a roll of electrical tape, or a can of paint.",
             "example": "roll"
           },
           "manufacturer": {
