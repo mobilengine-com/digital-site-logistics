@@ -1073,7 +1073,7 @@
             "example": "Budapest, Bartók Béla út 42, II/4, DTLS134532"
           },
           "ekaerNumber": {
-            "maxLength": 255,
+            "maxLength": 65535,
             "type": "string",
             "description": "Identification number of the delivery from the Hungarian tax bureau (NAV).",
             "nullable": true
@@ -1094,7 +1094,7 @@
             "example": "DTLS555667"
           },
           "haulierComment": {
-            "maxLength": 255,
+            "maxLength": 65535,
             "type": "string",
             "nullable": true
           }
