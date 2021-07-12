@@ -153,7 +153,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The requested delivery note",
+            "description": "The delivery notes matching the search criteria, or an empty list if no matching delivery notes were found.",
             "content": {
               "application/json": {
                 "schema": {
@@ -161,16 +161,6 @@
                   "items": {
                     "$ref": "#/components/schemas/ApiDeliveryNote"
                   }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No delivery note was found with the specified supplierId",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
